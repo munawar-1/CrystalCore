@@ -55,6 +55,35 @@ const PROMPT_SETS = [
   ]
 ];
 
+function ClaudeStarburst() {
+  return (
+    <svg 
+      className="claude-starburst" 
+      viewBox="0 0 32 32" 
+      fill="none" 
+      stroke="currentColor" 
+      strokeWidth="2.5" 
+      strokeLinecap="round"
+      aria-hidden="true"
+    >
+      <line x1="19.5" y1="16" x2="28.5" y2="16" />
+      <line x1="19.15" y1="17.52" x2="27.26" y2="21.42" />
+      <line x1="18.18" y1="18.74" x2="23.79" y2="25.78" />
+      <line x1="16.78" y1="19.41" x2="18.78" y2="28.19" />
+      <line x1="15.22" y1="19.41" x2="13.22" y2="28.19" />
+      <line x1="13.82" y1="18.74" x2="8.21" y2="25.78" />
+      <line x1="12.85" y1="17.52" x2="4.74" y2="21.42" />
+      <line x1="12.5" y1="16" x2="3.5" y2="16" />
+      <line x1="12.85" y1="14.48" x2="4.74" y2="10.58" />
+      <line x1="13.82" y1="13.26" x2="8.21" y2="6.22" />
+      <line x1="15.22" y1="12.59" x2="13.22" y2="3.81" />
+      <line x1="16.78" y1="12.59" x2="18.78" y2="3.81" />
+      <line x1="18.18" y1="13.26" x2="23.79" y2="6.22" />
+      <line x1="19.15" y1="14.48" x2="27.26" y2="10.58" />
+    </svg>
+  );
+}
+
 export default function ChatView({
   messages,
   isThinking,
@@ -63,7 +92,7 @@ export default function ChatView({
   showToast
 }) {
   const [inputText, setInputText] = useState("");
-  const [promptSetIndex, setPromptSetIndex] = useState(0);
+  const [activeMode, setActiveMode] = useState("chat");
   const [openDrawers, setOpenDrawers] = useState({});
   const chatScrollRef = useRef(null);
   const textareaRef = useRef(null);
@@ -75,16 +104,13 @@ export default function ChatView({
     }
   }, [messages, isThinking]);
 
-  // Compute greeting dynamically
-  const getGreeting = () => {
+  // Compute greeting dynamically matching Claude's time-sensitive elegance
+  const getClaudeGreeting = () => {
     const hour = new Date().getHours();
-    if (hour >= 5 && hour < 12) return "Good morning";
-    if (hour >= 12 && hour < 17) return "Good afternoon";
-    return "Good evening";
-  };
-
-  const handleRotatePrompts = () => {
-    setPromptSetIndex((prev) => (prev + 1) % PROMPT_SETS.length);
+    if (hour >= 22 || hour < 5) return "It's a late-night jam session.";
+    if (hour >= 5 && hour < 12) return "Good morning, Linear.";
+    if (hour >= 12 && hour < 17) return "Good afternoon, Linear.";
+    return "Good evening, Linear.";
   };
 
   const handlePromptCardClick = (query) => {
@@ -137,205 +163,230 @@ export default function ChatView({
 
   const isWelcomeVisible = messages.length === 0 && !isThinking;
 
-  return (
-    <section className="view-container active" id="viewChat">
-      {/* Chat Scroll Area */}
-      <div className="chat-scroll-area" id="chatScrollArea" ref={chatScrollRef}>
-        
-        {/* Empty State Welcome Card */}
-        {isWelcomeVisible && (
-          <div className="welcome-container" id="welcomeContainer">
-            <div className="welcome-status-pill">
-              <span className="green-status-dot"></span>
-              <span>AUTONOMOUS GEO INTELLIGENCE • HINDSIGHT ENGINE</span>
-            </div>
-            <div className="welcome-hero-text">
-              <h1 className="hero-greeting" id="heroGreeting">
-                {getGreeting()}, <span className="mint-gradient-text">Linear Marketing Team</span>
-              </h1>
-              <h2 className="hero-question">What would you like to investigate?</h2>
-            </div>
-            <p className="welcome-instruction">
-              Select a causal investigation vector below or ask any question to recall from 8+ weeks of Hindsight memory
-            </p>
+  const renderComposer = () => (
+    <div className="composer-container">
+      <textarea
+        ref={textareaRef}
+        id="chatInputText"
+        className="composer-textarea"
+        rows="1"
+        placeholder="How can I help you today?"
+        value={inputText}
+        onChange={handleTextareaChange}
+        onKeyDown={handleKeyDown}
+      />
 
-            <div className="prompt-cards-grid" id="promptCardsGrid">
-              {PROMPT_SETS[promptSetIndex].map((item, idx) => (
-                <button
-                  key={idx}
-                  className="prompt-card"
-                  onClick={() => handlePromptCardClick(item.query)}
-                >
-                  <div className="card-prompt-header">
-                    <span className="prompt-text">{item.display}</span>
-                    <svg className="corner-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <line x1="7" y1="17" x2="17" y2="7"/>
-                      <polyline points="7 7 17 7 17 17"/>
-                    </svg>
-                  </div>
-                  <span className="prompt-tag">{item.tag}</span>
-                </button>
-              ))}
-            </div>
+      <div className="composer-toolbar">
+        <div className="toolbar-left">
+          <button
+            className="claude-icon-btn"
+            id="btnComposerAdd"
+            title="Log Feature / Event to Hindsight"
+            onClick={onOpenModal}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </button>
 
-            <button className="btn-refresh-prompt" id="btnRefreshPrompts" onClick={handleRotatePrompts}>
-              <svg className="refresh-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M23 4v6h-6"/>
-                <path d="M1 20v-6h6"/>
-                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-              </svg>
-              <span>Refresh Prompt</span>
+          <div className="claude-mode-group">
+            <button
+              className={`claude-mode-pill ${activeMode === 'chat' ? 'active' : ''}`}
+              onClick={() => setActiveMode('chat')}
+            >
+              Chat
+            </button>
+            <button
+              className={`claude-mode-pill ${activeMode === 'reflect' ? 'active reflect' : ''}`}
+              title="Hindsight Memory Reflection"
+              onClick={() => {
+                setActiveMode('reflect');
+                handleReflect();
+              }}
+            >
+              Reflect
             </button>
           </div>
-        )}
-
-        {/* Chat Messages */}
-        <div className="messages-container" id="messagesContainer">
-          {messages.map((msg, index) => {
-            if (msg.role === "user") {
-              return (
-                <div key={index} className="message-row user">
-                  <div className="message-bubble">{msg.content}</div>
-                </div>
-              );
-            }
-
-            const memories = msg.recalled_memories || [];
-            const isDrawerOpen = !!openDrawers[index];
-
-            return (
-              <div key={index} className="message-row assistant">
-                <div className="message-avatar">🧠</div>
-                <div className="message-bubble">
-                  {memories.length > 0 && (
-                    <div className="memory-badge-wrapper">
-                      <button
-                        className="memory-pill-badge interactive"
-                        onClick={() => toggleDrawer(index)}
-                      >
-                        <span>⚡ {memories.length} Memories Recalled from Hindsight</span>
-                        <svg
-                          className="chevron-icon"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          style={{
-                            transform: isDrawerOpen ? 'rotate(180deg)' : 'none',
-                            transition: 'transform 0.2s'
-                          }}
-                        >
-                          <polyline points="6 9 12 15 18 9"/>
-                        </svg>
-                      </button>
-                      {isDrawerOpen && (
-                        <div className="memory-drawer open">
-                          <div className="memory-drawer-title">Retrieved Hindsight Memory Units:</div>
-                          {memories.map((m, mIdx) => (
-                            <div key={mIdx} className="memory-drawer-item">
-                              {typeof m === 'object' ? `${m.week_label || ''} [${m.event_type || 'event'}]: ${m.description || ''}` : String(m)}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  <div
-                    className="markdown-content"
-                    dangerouslySetInnerHTML={{ __html: renderMarkdown(msg.content) }}
-                  />
-                </div>
-              </div>
-            );
-          })}
-
-          {/* Thinking State */}
-          {isThinking && (
-            <div className="message-row assistant">
-              <div className="message-avatar">🧠</div>
-              <div className="message-bubble">
-                <span className="memory-pill-badge">Recalling from Bank: linear-seo-intelligence...</span>
-                <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', marginTop: '0.4rem' }}>
-                  Reasoning across 8-week timeline and competitor moves...
-                </p>
-              </div>
-            </div>
-          )}
         </div>
 
+        <div className="toolbar-right">
+          <button
+            className="claude-model-pill"
+            title="Groq LLaMA 3.3 Versatile • Bank linear-seo-intelligence"
+            onClick={() => showToast("🧠 Bank: linear-seo-intelligence • LLaMA 3.3 70B", "info")}
+          >
+            <span>Hindsight 70B</span>
+            <span className="claude-model-badge">High</span>
+            <svg className="chevron-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+
+          <button
+            className="claude-icon-btn"
+            title="Voice Input"
+            onClick={() => showToast("🎙️ Voice input ready", "info")}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              <line x1="12" y1="19" x2="12" y2="23"/>
+              <line x1="8" y1="23" x2="16" y2="23"/>
+            </svg>
+          </button>
+
+          <button
+            className={`claude-send-btn ${inputText.trim() ? 'active' : ''}`}
+            id="btnSendMessage"
+            aria-label="Send message"
+            onClick={handleSend}
+            disabled={isThinking || !inputText.trim()}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <line x1="12" y1="19" x2="12" y2="5"/>
+              <polyline points="5 12 12 5 19 12"/>
+            </svg>
+          </button>
+        </div>
       </div>
+    </div>
+  );
 
-      {/* Chat Input Bar (Floating Studio Design) */}
-      <div className="chat-input-wrapper">
-        <div className="composer-container">
-          <textarea
-            ref={textareaRef}
-            id="chatInputText"
-            className="composer-textarea"
-            rows="1"
-            placeholder="Ask AI Anything.."
-            value={inputText}
-            onChange={handleTextareaChange}
-            onKeyDown={handleKeyDown}
-          />
+  return (
+    <section className={`view-container active ${isWelcomeVisible ? 'is-empty-state' : 'is-conversation'}`} id="viewChat">
+      {isWelcomeVisible ? (
+        /* Empty State: Claude Centered Hero & Composer */
+        <div className="claude-empty-wrapper">
+          <div className="claude-hero">
+            <ClaudeStarburst />
+            <h1 className="claude-greeting">{getClaudeGreeting()}</h1>
+          </div>
 
-          <div className="composer-toolbar">
-            <div className="toolbar-left">
+          <div className="claude-composer-shell">
+            {renderComposer()}
+
+            {/* Subtle, Minimal Single-line Prompt Chips */}
+            <div className="claude-chips-row">
               <button
-                className="composer-btn-icon"
-                id="btnComposerAdd"
-                title="Log Feature / Event"
-                onClick={onOpenModal}
+                className="claude-chip"
+                onClick={() => handlePromptCardClick("Why did our Perplexity citation rate and referral signups drop in mid-February?")}
               >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <line x1="12" y1="5" x2="12" y2="19"/>
-                  <line x1="5" y1="12" x2="19" y2="12"/>
-                </svg>
+                <span className="claude-chip-dot"></span>
+                <span>Why did Perplexity citations drop in mid-Feb?</span>
               </button>
               <button
-                className="composer-pill-btn"
-                id="btnThinkBigger"
-                title="Hindsight Deep Memory Synthesis"
-                onClick={handleReflect}
+                className="claude-chip"
+                onClick={() => handlePromptCardClick("What should we do to beat Jira after their 25% enterprise price hike?")}
               >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-                </svg>
-                <span>Hindsight Reflect</span>
+                <span className="claude-chip-dot"></span>
+                <span>How to counter Jira's 25% price hike</span>
               </button>
               <button
-                className="composer-pill-btn"
-                id="btnMoreOptions"
-                title="Quick Simulation Actions"
-                onClick={() => showToast("⚡ Active Mode: GEO Strategy Agent with Linear vs Jira memory context", "info")}
+                className="claude-chip"
+                onClick={() => handlePromptCardClick("How should we update /switch-from-jira to leverage the new Linear Asks AI feature?")}
               >
-                <span>••• More</span>
+                <span className="claude-chip-dot"></span>
+                <span>Linear Asks GEO positioning strategy</span>
               </button>
             </div>
 
-            <div className="toolbar-right">
-              <button
-                className="btn-send-pill"
-                id="btnSendMessage"
-                aria-label="Send message"
-                onClick={handleSend}
-                disabled={isThinking || !inputText.trim()}
-              >
-                <svg className="arrow-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <line x1="12" y1="19" x2="12" y2="5"/>
-                  <polyline points="5 12 12 5 19 12"/>
-                </svg>
-                <span>Send</span>
-              </button>
+            <div className="claude-disclaimer">
+              Powered by <strong>Vectorize Hindsight</strong> memory bank <code>linear-seo-intelligence</code> • Groq Free Tier
             </div>
           </div>
         </div>
+      ) : (
+        /* Active Conversation Mode */
+        <>
+          <div className="chat-scroll-area" id="chatScrollArea" ref={chatScrollRef}>
+            <div className="messages-container" id="messagesContainer">
+              {messages.map((msg, index) => {
+                if (msg.role === "user") {
+                  return (
+                    <div key={index} className="message-row user">
+                      <div className="message-bubble">{msg.content}</div>
+                    </div>
+                  );
+                }
 
-        <div className="input-disclaimer">
-          Powered by <strong>Vectorize Hindsight</strong> memory bank <code>linear-seo-intelligence</code> • Groq Free Tier
-        </div>
-      </div>
+                const memories = msg.recalled_memories || [];
+                const isDrawerOpen = !!openDrawers[index];
+
+                return (
+                  <div key={index} className="message-row assistant">
+                    <div className="message-avatar">
+                      <ClaudeStarburst />
+                    </div>
+                    <div className="message-bubble">
+                      {memories.length > 0 && (
+                        <div className="memory-badge-wrapper">
+                          <button
+                            className="memory-pill-badge interactive"
+                            onClick={() => toggleDrawer(index)}
+                          >
+                            <span>⚡ {memories.length} Memories Recalled from Hindsight</span>
+                            <svg
+                              className="chevron-icon"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              style={{
+                                transform: isDrawerOpen ? 'rotate(180deg)' : 'none',
+                                transition: 'transform 0.2s'
+                              }}
+                            >
+                              <polyline points="6 9 12 15 18 9"/>
+                            </svg>
+                          </button>
+                          {isDrawerOpen && (
+                            <div className="memory-drawer open">
+                              <div className="memory-drawer-title">Retrieved Hindsight Memory Units:</div>
+                              {memories.map((m, mIdx) => (
+                                <div key={mIdx} className="memory-drawer-item">
+                                  {typeof m === 'object' ? `${m.week_label || ''} [${m.event_type || 'event'}]: ${m.description || ''}` : String(m)}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      <div
+                        className="markdown-content"
+                        dangerouslySetInnerHTML={{ __html: renderMarkdown(msg.content) }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Thinking State */}
+              {isThinking && (
+                <div className="message-row assistant">
+                  <div className="message-avatar">
+                    <ClaudeStarburst />
+                  </div>
+                  <div className="message-bubble">
+                    <span className="memory-pill-badge">Recalling from Bank: linear-seo-intelligence...</span>
+                    <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', marginTop: '0.4rem' }}>
+                      Reasoning across 8-week timeline and competitor moves...
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="chat-input-wrapper fixed-composer">
+            {renderComposer()}
+            <div className="claude-disclaimer">
+              Powered by <strong>Vectorize Hindsight</strong> memory bank <code>linear-seo-intelligence</code> • Groq Free Tier
+            </div>
+          </div>
+        </>
+      )}
     </section>
   );
 }
