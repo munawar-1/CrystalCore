@@ -1321,25 +1321,28 @@ body {
 }
 
 .kpi-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
+  background: rgba(18, 19, 25, 0.95);
+  border: 1px solid rgba(62, 230, 170, 0.22);
+  border-left: 3px solid var(--mint-primary);
   border-radius: var(--radius-md);
   padding: 1.15rem 1.25rem;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35), 0 0 12px rgba(62, 230, 170, 0.04);
+  transition: all var(--transition-fast);
 }
 
-.kpi-card.alert {
-  border-left: 3px solid var(--color-alert);
+.kpi-card:hover {
+  border-color: rgba(62, 230, 170, 0.45);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), 0 0 16px rgba(62, 230, 170, 0.08);
 }
 
-.kpi-card.competitor {
-  border-left: 3px solid var(--accent-jira);
-}
-
+.kpi-card.alert,
+.kpi-card.competitor,
 .kpi-card.highlight {
-  border-left: 3px solid var(--accent-linear);
+  border-left: 3px solid var(--mint-primary) !important;
 }
 
 .kpi-label {
@@ -1360,7 +1363,7 @@ body {
 .kpi-val-sm {
   font-size: 1.05rem;
   font-weight: 700;
-  color: #cbd5e1;
+  color: var(--mint-primary);
 }
 
 .kpi-meta {
@@ -1368,25 +1371,23 @@ body {
   color: var(--text-secondary);
 }
 
-.trend-negative {
-  color: var(--color-alert);
-  font-weight: 700;
-}
-
-.trend-positive {
-  color: #60a5fa;
+.trend-negative,
+.trend-positive,
+.trend-green {
+  color: var(--mint-primary) !important;
   font-weight: 700;
 }
 
 /* Chart Card */
 .chart-card {
   background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid rgba(62, 230, 170, 0.2);
   border-radius: var(--radius-md);
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(62, 230, 170, 0.03);
 }
 
 .chart-card-header {
@@ -1609,13 +1610,15 @@ body {
 /* Selected Pin Summary */
 .selected-pin-summary {
   background: rgba(22, 23, 29, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(62, 230, 170, 0.25);
+  border-left: 3px solid var(--mint-primary);
   border-radius: var(--radius-sm);
   padding: 1.25rem 1.4rem;
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
   animation: fadeIn 0.25s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 15px rgba(62, 230, 170, 0.05);
 }
 
 .pin-summary-header {
@@ -1683,8 +1686,8 @@ body {
 
 /* Causal Anomaly Action Card (Directs to AI Agent for Reasoning) */
 .anomaly-action-card {
-  background: linear-gradient(135deg, rgba(22, 23, 30, 0.95) 0%, rgba(18, 19, 25, 0.98) 100%);
-  border: 1px solid rgba(244, 63, 94, 0.28);
+  background: linear-gradient(135deg, rgba(18, 25, 22, 0.96) 0%, rgba(14, 18, 16, 0.98) 100%);
+  border: 1px solid rgba(62, 230, 170, 0.35);
   border-radius: var(--radius-md);
   padding: 1.6rem 1.8rem;
   display: flex;
@@ -1693,7 +1696,7 @@ body {
   gap: 2rem;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(244, 63, 94, 0.08);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.4), 0 0 24px rgba(62, 230, 170, 0.08);
   margin-top: 0.5rem;
 }
 
@@ -1715,7 +1718,7 @@ body {
   left: 0;
   width: 4px;
   height: 100%;
-  background: linear-gradient(to bottom, #f43f5e, #fb7185);
+  background: linear-gradient(to bottom, #3ee6aa, #10b981);
 }
 
 .anomaly-card-left {
@@ -1731,7 +1734,7 @@ body {
   gap: 0.5rem;
   font-size: 0.72rem;
   font-weight: 700;
-  color: #fb7185;
+  color: var(--mint-primary);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   font-family: var(--font-mono);
@@ -1741,14 +1744,14 @@ body {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #f43f5e;
-  box-shadow: 0 0 10px #f43f5e;
+  background: var(--mint-primary);
+  box-shadow: 0 0 10px var(--mint-primary);
   animation: anomalyPulse 2s infinite ease-in-out;
 }
 
 @keyframes anomalyPulse {
   0% { transform: scale(0.9); opacity: 0.7; }
-  50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 14px #f43f5e; }
+  50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 14px var(--mint-primary); }
   100% { transform: scale(0.9); opacity: 0.7; }
 }
 

@@ -132,30 +132,30 @@ export default function AnalyticsView({
           </div>
         </div>
 
-        {/* KPI Cards Strip */}
+        {/* KPI Cards Strip (All Green Theme, Zero Static Reasoning) */}
         <div className="analytics-kpi-grid">
-          <div className="kpi-card alert">
+          <div className="kpi-card">
             <div className="kpi-label">Perplexity Citation Share</div>
             <div className="kpi-val">18.4%</div>
-            <div className="kpi-meta"><span className="trend-negative">-70%</span> from 88% peak (Feb 14)</div>
+            <div className="kpi-meta"><span className="trend-green">-70%</span> from 88% peak (Feb 14)</div>
           </div>
 
-          <div className="kpi-card competitor">
+          <div className="kpi-card">
             <div className="kpi-label">Atlassian Jira Lead</div>
             <div className="kpi-val">74.2%</div>
-            <div className="kpi-meta"><span className="trend-positive">+56%</span> captured comparison queries</div>
+            <div className="kpi-meta"><span className="trend-green">+56%</span> captured comparison queries</div>
           </div>
 
           <div className="kpi-card">
             <div className="kpi-label">Weekly AI Referrals</div>
             <div className="kpi-val">310 / wk</div>
-            <div className="kpi-meta"><span className="trend-negative">-81%</span> dropped from 1,650/wk</div>
+            <div className="kpi-meta"><span className="trend-green">-81%</span> dropped from 1,650/wk</div>
           </div>
 
-          <div className="kpi-card highlight">
+          <div className="kpi-card">
             <div className="kpi-label">Primary Root Vulnerability</div>
-            <div className="kpi-val-sm">Video Replaced Markdown</div>
-            <div className="kpi-meta">Jan 26 commit severed crawler parsing</div>
+            <div className="kpi-val-sm" style={{ color: 'var(--mint-primary)', fontWeight: '700' }}>Diagnostic Alert</div>
+            <div className="kpi-meta">Requires AI Causal Diagnosis</div>
           </div>
         </div>
 
@@ -227,9 +227,9 @@ export default function AnalyticsView({
 
                 {/* Anomaly Highlight Zone Gradient */}
                 <linearGradient id="anomalyZoneGradient" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.04" />
-                  <stop offset="50%" stopColor="#f43f5e" stopOpacity="0.12" />
-                  <stop offset="100%" stopColor="#f43f5e" stopOpacity="0.06" />
+                  <stop offset="0%" stopColor="#3ee6aa" stopOpacity="0.04" />
+                  <stop offset="50%" stopColor="#3ee6aa" stopOpacity="0.12" />
+                  <stop offset="100%" stopColor="#3ee6aa" stopOpacity="0.06" />
                 </linearGradient>
 
                 {/* Neon Glow Filters */}
@@ -260,7 +260,7 @@ export default function AnalyticsView({
                     y1={padding.top}
                     x2={anomalyXStart}
                     y2={padding.top + plotHeight}
-                    stroke="#f43f5e"
+                    stroke="#3ee6aa"
                     strokeWidth="1.5"
                     strokeDasharray="4 4"
                     strokeOpacity="0.6"
@@ -268,12 +268,12 @@ export default function AnalyticsView({
                   <text
                     x={anomalyXStart + 10}
                     y={padding.top + 16}
-                    fill="#f43f5e"
+                    fill="#3ee6aa"
                     fontSize="10"
                     fontWeight="700"
                     letterSpacing="0.04em"
                   >
-                    ⚠️ Causal Anomaly Window (-70% Drop)
+                    ✦ Causal Anomaly Window (-70% Drop)
                   </text>
                 </g>
               )}
@@ -368,7 +368,7 @@ export default function AnalyticsView({
                       cy={p.y}
                       r="12"
                       fill="none"
-                      stroke={idx === 7 ? "#f43f5e" : "#3ee6aa"}
+                      stroke="#3ee6aa"
                       className="chart-pulse-ring"
                     />
                   </g>
