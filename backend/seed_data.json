@@ -1,0 +1,174 @@
+{
+  "brand": "Linear",
+  "rival": "Atlassian Jira",
+  "bank_id": "linear-seo-intelligence",
+  "rules": [
+    "LLM search engines (Perplexity, ChatGPT Search, Gemini) rely on structured markdown comparison tables with explicit headers when answering 'vs' comparison queries.",
+    "Video embeds (YouTube, Loom, Vimeo) and heavy client-side JavaScript canvas elements are invisible to LLM web search crawlers and receive 0% factual extraction credit.",
+    "Explicit latency numbers (e.g. '50ms response time') are cited 3.5x more often by AI search engines than generic marketing claims like 'blazing fast'.",
+    "When a competitor publishes third-party SOC-2 and enterprise security comparisons, AI search engines downgrade lightweight tools unless security specs are directly documented.",
+    "Pricing transparency: AI engines strongly cite competitors that publish clear, per-seat pricing matrices over tools with 'Contact Sales' gates."
+  ],
+  "timeline": [
+    {
+      "id": "evt-1",
+      "date": "2026-01-08",
+      "week": "Week 1",
+      "event_type": "BENCHMARK_RELEASE",
+      "title": "Speed Benchmark & Jira Migration Guide Launched",
+      "page": "linear.app/switch-from-jira",
+      "details": "Linear published verified latency benchmarks (Linear 50ms vs Jira 450ms) with a comprehensive markdown comparison table covering keyboard shortcuts, cycle planning, and GitHub sync.",
+      "citation_metrics": {
+        "perplexity_citation_rate": 88,
+        "chatgpt_search_visibility": 84,
+        "google_rank": 2,
+        "weekly_ai_referrals": 1420
+      },
+      "significance": "Established Linear as the #1 recommended fast agile issue tracker in AI search."
+    },
+    {
+      "id": "evt-2",
+      "date": "2026-01-12",
+      "week": "Week 1",
+      "event_type": "COMPETITOR_PRICING",
+      "title": "Atlassian Increases Jira Cloud Enterprise Pricing by 25%",
+      "page": "atlassian.com/licensing/jira-software",
+      "details": "Atlassian increased annual Jira Cloud Enterprise tiers by 25%, sparking widespread complaints on Hacker News and Reddit from startup engineering leaders.",
+      "citation_metrics": {
+        "perplexity_citation_rate": 89,
+        "chatgpt_search_visibility": 85,
+        "google_rank": 2,
+        "weekly_ai_referrals": 1510
+      },
+      "significance": "Created high search volume for 'affordable Jira alternatives for engineering teams'."
+    },
+    {
+      "id": "evt-3",
+      "date": "2026-01-15",
+      "week": "Week 2",
+      "event_type": "TECHNICAL_BLOG",
+      "title": "Engineering Deep Dive: The Linear Sync Engine Architecture",
+      "page": "linear.app/blog/sync-engine-architecture",
+      "details": "Linear CTO published an in-depth technical post explaining local-first SQLite sync, optimistic UI updates, and WebSocket multi-player state synchronization.",
+      "citation_metrics": {
+        "perplexity_citation_rate": 91,
+        "chatgpt_search_visibility": 87,
+        "google_rank": 2,
+        "weekly_ai_referrals": 1590
+      },
+      "significance": "Generated 400+ developer backlinks and made Linear the top citation for 'local-first engineering software'."
+    },
+    {
+      "id": "evt-4",
+      "date": "2026-01-22",
+      "week": "Week 3",
+      "event_type": "COMPETITOR_PR",
+      "title": "Atlassian Sponsoring Gartner Magic Quadrant Enterprise Campaign",
+      "page": "atlassian.com/enterprise/gartner-report",
+      "details": "Atlassian launched an aggressive paid PR blitz around Gartner's Enterprise Agile Planning report, positioning Jira as the only compliant solution for 500+ seat organizations.",
+      "citation_metrics": {
+        "perplexity_citation_rate": 86,
+        "chatgpt_search_visibility": 84,
+        "google_rank": 2,
+        "weekly_ai_referrals": 1420
+      },
+      "significance": "Jira dominated enterprise enterprise queries while Linear retained startup agile dominance."
+    },
+    {
+      "id": "evt-5",
+      "date": "2026-01-26",
+      "week": "Week 3",
+      "event_type": "PAGE_REDESIGN_MISTAKE",
+      "title": "Marketing Redesign Replaces Comparison Table with Video Embed",
+      "page": "linear.app/switch-from-jira",
+      "details": "To create a minimalist aesthetic, Linear design team removed the structured HTML/markdown comparison table and replaced it with a slick 90-second product demo video embed.",
+      "citation_metrics": {
+        "perplexity_citation_rate": 85,
+        "chatgpt_search_visibility": 83,
+        "google_rank": 2,
+        "weekly_ai_referrals": 1390
+      },
+      "significance": "Severed the crawlable tabular data signal for AI search engines on the migration page."
+    },
+    {
+      "id": "evt-6",
+      "date": "2026-01-30",
+      "week": "Week 4",
+      "event_type": "PRODUCT_INTEGRATION",
+      "title": "Linear Launches GitHub Copilot Integration",
+      "page": "linear.app/integrations/github-copilot",
+      "details": "Linear announced native integration with GitHub Copilot, allowing developers to create and link issues directly inside VS Code and GitHub pull requests.",
+      "citation_metrics": {
+        "perplexity_citation_rate": 86,
+        "chatgpt_search_visibility": 84,
+        "google_rank": 2,
+        "weekly_ai_referrals": 1480
+      },
+      "significance": "Solidified Linear as the primary issue tracker for AI-assisted developer workflows."
+    },
+    {
+      "id": "evt-7",
+      "date": "2026-02-04",
+      "week": "Week 4",
+      "event_type": "COMPETITOR_COUNTER_ATTACK",
+      "title": "Atlassian Releases Enterprise Defense Guide Targeting Linear",
+      "page": "atlassian.com/software/jira/comparison/jira-vs-linear",
+      "details": "Atlassian launched a 4,500-word SEO page titled 'Why Enterprise Teams Choose Jira Over Lightweight Trackers' featuring extensive structured markdown comparison matrices for SOC-2, HIPAA, and custom workflows.",
+      "citation_metrics": {
+        "perplexity_citation_rate": 78,
+        "chatgpt_search_visibility": 75,
+        "google_rank": 3,
+        "weekly_ai_referrals": 1180
+      },
+      "significance": "Atlassian provided direct, crawlable tables tailored for LLM extraction."
+    },
+    {
+      "id": "evt-8",
+      "date": "2026-02-14",
+      "week": "Week 6",
+      "event_type": "ALGORITHMIC_CITATION_COLLAPSE",
+      "title": "Perplexity & ChatGPT Re-indexing Strips Linear Citation",
+      "page": "linear.app/switch-from-jira",
+      "details": "AI search engines re-indexed both sites. Because video embeds cannot be parsed for factual bullet claims, Perplexity replaced Linear's citation with Atlassian Jira for general project tracking queries.",
+      "citation_metrics": {
+        "perplexity_citation_rate": 18,
+        "chatgpt_search_visibility": 22,
+        "google_rank": 6,
+        "weekly_ai_referrals": 310
+      },
+      "significance": "Catastrophic 78% drop in AI citations and 81% drop in weekly AI referral signups."
+    },
+    {
+      "id": "evt-9",
+      "date": "2026-02-20",
+      "week": "Week 6",
+      "event_type": "COMPETITOR_AI_LAUNCH",
+      "title": "Atlassian Announces 'Atlassian Intelligence' as Paid $15 Add-on",
+      "page": "atlassian.com/software/artificial-intelligence",
+      "details": "Atlassian launched AI issue summaries and JQL assistance, but locked it behind a mandatory $15/user/month add-on fee for Jira Cloud users.",
+      "citation_metrics": {
+        "perplexity_citation_rate": 20,
+        "chatgpt_search_visibility": 23,
+        "google_rank": 6,
+        "weekly_ai_referrals": 350
+      },
+      "significance": "Created user backlash over pricing, opening a massive strategic opportunity for Linear."
+    },
+    {
+      "id": "evt-10",
+      "date": "2026-02-24",
+      "week": "Week 7",
+      "event_type": "ENGINEERING_RELEASE",
+      "title": "Engineering Deploys 'Linear Asks' AI Triage to Production",
+      "page": "linear.app/features/ai-asks",
+      "details": "Engineering merged PR #942 releasing 'Linear Asks'—sub-100ms automated issue triaging and summarization natively built-in at zero extra fee for all users.",
+      "citation_metrics": {
+        "perplexity_citation_rate": 24,
+        "chatgpt_search_visibility": 26,
+        "google_rank": 5,
+        "weekly_ai_referrals": 410
+      },
+      "significance": "Massive new product capability shipped, but comparison page not yet updated to leverage it."
+    }
+  ]
+}
