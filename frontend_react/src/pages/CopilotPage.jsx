@@ -245,6 +245,11 @@ export default function CopilotPage({ onNavigate, initialView = 'chat' }) {
     handleSendMessage(`Why did the event on ${event.date} ('${event.title}') impact our Perplexity citation rate and referral signups?`);
   };
 
+  const handleNavigateToChatWithPrompt = (promptText) => {
+    setActiveView('chat');
+    handleSendMessage(promptText);
+  };
+
   const handleShare = () => {
     navigator.clipboard?.writeText(window.location.href);
     showToast("🔗 Session link copied to clipboard!", "success");
@@ -292,6 +297,7 @@ export default function CopilotPage({ onNavigate, initialView = 'chat' }) {
             <AnalyticsView
               timelineData={timelineData}
               onAskAboutPin={handleAskAboutPin}
+              onNavigateToChatWithPrompt={handleNavigateToChatWithPrompt}
             />
           )}
         </div>
