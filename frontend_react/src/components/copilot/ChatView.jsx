@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { marked } from 'marked';
+import { useAuth } from '../../context/AuthContext';
 
 const PROMPT_SETS = [
   [
@@ -91,6 +92,7 @@ export default function ChatView({
   onOpenModal,
   showToast
 }) {
+  const { user, isCoder, isMarketing } = useAuth();
   const [inputText, setInputText] = useState("");
   const [activeMode, setActiveMode] = useState("chat");
   const [openDrawers, setOpenDrawers] = useState({});
@@ -104,13 +106,11 @@ export default function ChatView({
     }
   }, [messages, isThinking]);
 
-  // Compute greeting dynamically matching Claude's time-sensitive elegance
+  // Compute greeting dynamically matching user identity
   const getClaudeGreeting = () => {
     const hour = new Date().getHours();
-    if (hour >= 22 || hour < 5) return "It's a late-night jam session.";
-    if (hour >= 5 && hour < 12) return "Good morning, Linear.";
-    if (hour >= 12 && hour < 17) return "Good afternoon, Linear.";
-    return "Good evening, Linear.";
+    const timeOfDay = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+    return `${timeOfDay}, ${user?.name || "Linear"}.`;
   };
 
   const handlePromptCardClick = (query) => {
@@ -268,27 +268,55 @@ export default function ChatView({
 
             {/* Subtle, Minimal Single-line Prompt Chips */}
             <div className="claude-chips-row">
-              <button
-                className="claude-chip"
-                onClick={() => handlePromptCardClick("Why did our Perplexity citation rate and referral signups drop in mid-February?")}
-              >
-                <span className="claude-chip-dot"></span>
-                <span>Why did Perplexity citations drop in mid-Feb?</span>
-              </button>
-              <button
-                className="claude-chip"
-                onClick={() => handlePromptCardClick("What should we do to beat Jira after their 25% enterprise price hike?")}
-              >
-                <span className="claude-chip-dot"></span>
-                <span>How to counter Jira's 25% price hike</span>
-              </button>
-              <button
-                className="claude-chip"
-                onClick={() => handlePromptCardClick("How should we update /switch-from-jira to leverage the new Linear Asks AI feature?")}
-              >
-                <span className="claude-chip-dot"></span>
-                <span>Linear Asks GEO positioning strategy</span>
-              </button>
+              {isCoder ? (
+                <>
+                  <button
+                    className="claude-chip"
+                    onClick={() => handlePromptCardClick("How did our latest PR merges (Linear Asks & SQLite sync) get indexed in Hindsight memory?")}
+                  >
+                    <span className="claude-chip-dot" style={{ background: 'var(--mint-primary)' }}></span>
+                    <span>Verify PR indexing in Hindsight memory</span>
+                  </button>
+                  <button
+                    className="claude-chip"
+                    onClick={() => handlePromptCardClick("What specific content factors in our markdown comparison table caused AI search engines to prefer Linear over Jira?")}
+                  >
+                    <span className="claude-chip-dot" style={{ background: 'var(--mint-primary)' }}></span>
+                    <span>Markdown tables vs video embeds trace</span>
+                  </button>
+                  <button
+                    className="claude-chip"
+                    onClick={() => handlePromptCardClick("Synthesize a technical release changelog based on all features retained by the coder team.")}
+                  >
+                    <span className="claude-chip-dot" style={{ background: 'var(--mint-primary)' }}></span>
+                    <span>Generate Coder technical changelog</span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    className="claude-chip"
+                    onClick={() => handlePromptCardClick("Why did our Perplexity citation rate and referral signups drop in mid-February?")}
+                  >
+                    <span className="claude-chip-dot" style={{ background: 'var(--accent-linear)' }}></span>
+                    <span>Why did Perplexity citations drop in mid-Feb?</span>
+                  </button>
+                  <button
+                    className="claude-chip"
+                    onClick={() => handlePromptCardClick("What should we do to beat Jira after their 25% enterprise price hike?")}
+                  >
+                    <span className="claude-chip-dot" style={{ background: 'var(--accent-linear)' }}></span>
+                    <span>How to counter Jira's 25% price hike</span>
+                  </button>
+                  <button
+                    className="claude-chip"
+                    onClick={() => handlePromptCardClick("How should we update /switch-from-jira to leverage the new Linear Asks AI feature?")}
+                  >
+                    <span className="claude-chip-dot" style={{ background: 'var(--accent-linear)' }}></span>
+                    <span>Linear Asks GEO positioning strategy</span>
+                  </button>
+                </>
+              )}
             </div>
 
             <div className="claude-disclaimer">

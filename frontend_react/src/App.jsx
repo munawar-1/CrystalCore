@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import LandingPage from './pages/LandingPage';
 import CopilotPage from './pages/CopilotPage';
+import { ThemeProvider } from './context/ThemeContext';
+import { AuthProvider } from './context/AuthContext';
 
-export default function App() {
+function MainApp() {
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
   const [currentSearch, setCurrentSearch] = useState(window.location.search);
 
@@ -26,12 +28,22 @@ export default function App() {
 
   // Determine initial view from query param ?view=analytics
   const searchParams = new URLSearchParams(currentSearch);
-  const initialView = searchParams.get('view') === 'analytics' ? 'analytics' : 'chat';
+  const viewParam = searchParams.get('view');
 
   // Routing: /app -> Copilot Workspace, / or /landing -> Landing Page
   if (currentPath === '/app') {
-    return <CopilotPage onNavigate={navigate} initialView={initialView} />;
+    return <CopilotPage onNavigate={navigate} initialView={viewParam} />;
   }
 
   return <LandingPage onNavigate={navigate} />;
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <MainApp />
+      </AuthProvider>
+    </ThemeProvider>
+  );
 }

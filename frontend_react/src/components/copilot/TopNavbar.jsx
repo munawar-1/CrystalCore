@@ -1,11 +1,16 @@
 import React from 'react';
+import { useAuth } from '../../context/AuthContext';
+import ThemeToggle from './ThemeToggle';
 
 export default function TopNavbar({
   onNavigateLanding,
   onOpenConfig,
   onToggleSidebar,
-  onShare
+  onShare,
+  onOpenAuth
 }) {
+  const { user, isCoder } = useAuth();
+
   return (
     <header className="top-navbar">
       <div className="navbar-left">
@@ -35,11 +40,51 @@ export default function TopNavbar({
             <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
             <circle cx="12" cy="12" r="3"/>
           </svg>
-          <span>Configuration</span>
+          <span>Memory Config</span>
         </button>
       </div>
 
       <div className="navbar-right">
+        {/* LIGHT / DARK THEME TOGGLE */}
+        <ThemeToggle />
+
+        {/* ROLE AUTHENTICATION BADGE & SWITCHER */}
+        <button
+          className="nav-pill-btn role-auth-pill"
+          id="btnSwitchRole"
+          title="Click to Switch Role (Coder vs Marketing Team)"
+          onClick={onOpenAuth}
+          style={{
+            background: isCoder ? 'rgba(62, 230, 170, 0.12)' : 'rgba(94, 106, 210, 0.12)',
+            border: isCoder ? '1px solid rgba(62, 230, 170, 0.35)' : '1px solid rgba(94, 106, 210, 0.35)',
+            cursor: 'pointer',
+            gap: '0.45rem'
+          }}
+        >
+          <span
+            style={{
+              fontSize: '11px',
+              fontFamily: 'var(--font-mono)',
+              fontWeight: 800,
+              color: isCoder ? 'var(--mint-primary)' : 'var(--accent-linear)'
+            }}
+          >
+            {isCoder ? '</> Coder' : '📢 Marketing'}
+          </span>
+          <span
+            style={{
+              fontSize: '10px',
+              background: isCoder ? 'var(--mint-primary)' : 'var(--accent-linear)',
+              color: isCoder ? '#060709' : '#ffffff',
+              padding: '1px 6px',
+              borderRadius: '999px',
+              fontWeight: 800
+            }}
+          >
+            Switch
+          </span>
+        </button>
+
         {/* Chat History Toggle */}
         <button
           className="nav-pill-btn"
@@ -51,7 +96,7 @@ export default function TopNavbar({
             <circle cx="12" cy="12" r="10"/>
             <polyline points="12 6 12 12 16 14"/>
           </svg>
-          <span>Chat History</span>
+          <span>History</span>
         </button>
 
         {/* Share Button */}

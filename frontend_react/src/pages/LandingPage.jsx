@@ -1,12 +1,32 @@
 import React from 'react';
 import TypewriterText from '../components/TypewriterText';
+import ThemeToggle from '../components/copilot/ThemeToggle';
+import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import '../styles/landing.css';
 
 export default function LandingPage({ onNavigate }) {
+  const { switchRole } = useAuth();
+  const { isLight } = useTheme();
+
   const handleLaunch = (e) => {
     e.preventDefault();
     if (onNavigate) onNavigate('/app');
     else window.location.href = '/app';
+  };
+
+  const handleLaunchAsCoder = (e) => {
+    e.preventDefault();
+    switchRole('coder');
+    if (onNavigate) onNavigate('/app?view=coder_memory');
+    else window.location.href = '/app?view=coder_memory';
+  };
+
+  const handleLaunchAsMarketing = (e) => {
+    e.preventDefault();
+    switchRole('marketing');
+    if (onNavigate) onNavigate('/app?view=marketing_strategy');
+    else window.location.href = '/app?view=marketing_strategy';
   };
 
   const handleExplore = (e) => {
@@ -16,9 +36,9 @@ export default function LandingPage({ onNavigate }) {
   };
 
   return (
-    <div className="landing-wrapper">
-      
-      {/* TOP NAVIGATION BAR (Matching Dribbble Synthora Layout) */}
+    <div className={`landing-wrapper ${isLight ? 'theme-light' : 'theme-dark'}`}>
+
+      {/* TOP NAVIGATION BAR */}
       <header className="landing-header">
         <nav className="nav-left">
           <a href="/" className="nav-link active" onClick={(e) => { e.preventDefault(); if (onNavigate) onNavigate('/'); }}>
@@ -35,12 +55,15 @@ export default function LandingPage({ onNavigate }) {
           </div>
         </div>
 
-        <div className="nav-right">
+        <div className="nav-right" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          {/* Light / Dark Theme Toggle on Landing */}
+          <ThemeToggle style={{ background: 'rgba(255, 255, 255, 0.06)', border: '1px solid var(--border-subtle)', borderRadius: '999px', padding: '0.45rem 0.85rem' }} />
+
           <button onClick={handleLaunch} className="btn-launch-pill" id="btnTopLaunch">
             <span>LAUNCH AGENT</span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" className="arrow-up-right">
-              <line x1="7" y1="17" x2="17" y2="7"/>
-              <polyline points="7 7 17 7 17 17"/>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="arrow-up-right">
+              <line x1="7" y1="17" x2="17" y2="7" />
+              <polyline points="7 7 17 7 17 17" />
             </svg>
           </button>
         </div>
@@ -49,10 +72,10 @@ export default function LandingPage({ onNavigate }) {
       {/* MAIN HERO CARD CONTAINER */}
       <main className="hero-container">
         <section className="hero-card">
-          
+
           {/* Left Content Area */}
           <div className="hero-content">
-            
+
             {/* Big Grotesque Headline with Typewriter Animation for CrystalCore. */}
             <div className="hero-title-group">
               <h1 className="hero-title">
@@ -66,17 +89,20 @@ export default function LandingPage({ onNavigate }) {
             <div className="hero-subtext-block">
               <p className="agent-description">
                 Synthetically trained. Memory-powered.<br />
-                Autonomous citation intelligence agent that remembers 8+ weeks of website changes and competitor moves to master Generative Engine Optimization.
+                Autonomous citation intelligence agent with <strong>Role-Based Workspaces</strong>: Coders update long-term memory with new features and PRs; Marketing tracks citations and counters Jira attacks.
               </p>
 
-              {/* Dual CTA Action Buttons */}
-              <div className="hero-actions">
-                <button onClick={handleLaunch} className="btn-cta-primary" id="btnHeroTryLive">
-                  <span>TRY AGENT LIVE</span>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6">
-                    <line x1="7" y1="17" x2="17" y2="7"/>
-                    <polyline points="7 7 17 7 17 17"/>
+              {/* Dual Role Launchers + Standard CTA */}
+              <div className="hero-actions" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
+                <button onClick={handleLaunchAsCoder} className="btn-cta-primary" id="btnLaunchCoder" style={{ background: 'var(--mint-primary)', color: '#060709', fontWeight: 800 }}>
+                  <span>&lt;/&gt; LAUNCH AS CODER</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6">
+                    <line x1="7" y1="17" x2="17" y2="7" />
+                    <polyline points="7 7 17 7 17 17" />
                   </svg>
+                </button>
+                <button onClick={handleLaunchAsMarketing} className="btn-cta-secondary" id="btnLaunchMarketing" style={{ borderColor: '#6366f1', color: 'var(--text-white)' }}>
+                  <span>📢 LAUNCH AS MARKETING</span>
                 </button>
                 <button onClick={handleExplore} className="btn-cta-secondary" id="btnHeroExploreEngine">
                   <span>EXPLORE MEMORY BANK</span>
@@ -86,7 +112,7 @@ export default function LandingPage({ onNavigate }) {
 
           </div>
 
-          {/* Right Halftone Visual Area (Pinned absolutely so it is 100% stationary) */}
+          {/* Right Halftone Visual Area */}
           <div className="hero-visual">
             <div className="halftone-art-wrapper">
               <img src="/assets/halftone-dither.png" alt="CrystalCore Neural Halftone Art" className="halftone-image" />
@@ -126,24 +152,24 @@ export default function LandingPage({ onNavigate }) {
 
         <div className="framework-grid">
           <div className="framework-card">
-            <div className="card-metric">8+ Wks</div>
-            <h3 className="card-title">Retain & Temporal Trace</h3>
-            <p className="card-desc">Remembers PR merges, site speed regressions, pricing attacks, and algorithmic re-indexing events across weeks.</p>
+            <div className="card-metric">&lt;/&gt; Coder</div>
+            <h3 className="card-title">Updates Memory with Features</h3>
+            <p className="card-desc">Ingests PR merges, latency benchmarks, and schema enhancements directly into persistent Hindsight memory.</p>
           </div>
           <div className="framework-card">
-            <div className="card-metric">94.2%</div>
-            <h3 className="card-title">Recall Diagnostic Accuracy</h3>
-            <p className="card-desc">Instantly surfaces why citations dropped in mid-February, connecting the exact commit to the Perplexity shift.</p>
+            <div className="card-metric">📢 Marketing</div>
+            <h3 className="card-title">GEO Citations & Strategy</h3>
+            <p className="card-desc">Monitors citation drops, tracks Jira price hikes, and leverages coder-retained memories to defeat competitors in AI search.</p>
           </div>
           <div className="framework-card highlight">
-            <div className="card-metric">4.2x</div>
-            <h3 className="card-title">Reflect Higher-Order GEO</h3>
-            <p className="card-desc">Synthesizes winning patterns across dozens of events — proving markdown tables outperform narrative copy in AI search.</p>
+            <div className="card-metric">☀️ / 🌙</div>
+            <h3 className="card-title">Dual Theme System</h3>
+            <p className="card-desc">Sleek, high-contrast Light Theme designed alongside the glassmorphic dark studio theme.</p>
           </div>
         </div>
       </section>
 
-      {/* BOTTOM FOOTER (With explicit requirement: 'engineered by Hisenbugs.') */}
+      {/* BOTTOM FOOTER */}
       <footer className="landing-footer">
         <div className="footer-container">
           <div className="footer-brand-side">

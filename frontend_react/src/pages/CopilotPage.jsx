@@ -4,6 +4,11 @@ import TopNavbar from '../components/copilot/TopNavbar';
 import ChatView from '../components/copilot/ChatView';
 import AnalyticsView from '../components/copilot/AnalyticsView';
 import FeatureModal from '../components/copilot/FeatureModal';
+import AuthModal from '../components/copilot/AuthModal';
+import CoderMemoryView from '../components/copilot/CoderMemoryView';
+import MarketingStrategyView from '../components/copilot/MarketingStrategyView';
+import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import '../styles/copilot.css';
 
 const INITIAL_SESSIONS = {
@@ -58,8 +63,13 @@ const INITIAL_SESSIONS = {
   }
 };
 
-export default function CopilotPage({ onNavigate, initialView = 'chat' }) {
-  const [activeView, setActiveView] = useState(initialView);
+export default function CopilotPage({ onNavigate, initialView }) {
+  const { user, isCoder, isMarketing, isAuthModalOpen, openAuthModal, closeAuthModal } = useAuth();
+  const { isLight, isDark } = useTheme();
+
+  // If initialView not specified in URL, set default based on role
+  const defaultRoleView = isCoder ? 'coder_memory' : 'marketing_strategy';
+  const [activeView, setActiveView] = useState(initialView || defaultRoleView);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [currentChatId, setCurrentChatId] = useState('chat-1');
   const [chatSessions, setChatSessions] = useState(INITIAL_SESSIONS);
@@ -255,10 +265,19 @@ export default function CopilotPage({ onNavigate, initialView = 'chat' }) {
     showToast("🔗 Session link copied to clipboard!", "success");
   };
 
+  const handleRoleChanged = (updatedUser) => {
+    showToast(`Switched active identity to: ${updatedUser.roleName}`, 'success');
+    if (updatedUser.role === 'coder') {
+      setActiveView('coder_memory');
+    } else {
+      setActiveView('marketing_strategy');
+    }
+  };
+
   const currentMessages = chatSessions[currentChatId]?.messages || [];
 
   return (
-    <div className="claude-theme">
+    <div className={`claude-theme ${isLight ? 'theme-light' : 'theme-dark'}`}>
       <div className="app-shell">
         {/* Left Sidebar */}
         <Sidebar
@@ -272,20 +291,40 @@ export default function CopilotPage({ onNavigate, initialView = 'chat' }) {
           onNewChat={handleNewChat}
           onNavigateLanding={() => onNavigate ? onNavigate('/') : window.location.href = '/'}
           showToast={showToast}
+          onOpenAuth={openAuthModal}
         />
 
         {/* Main Application Area */}
         <div className="app-main">
-          {/* Top Navbar */}
+          {/* Top Navbar with Theme Toggle and Role Switcher */}
           <TopNavbar
             onNavigateLanding={() => onNavigate ? onNavigate('/') : window.location.href = '/'}
             onOpenConfig={() => setIsFeatureModalOpen(true)}
             onToggleSidebar={handleToggleCollapse}
             onShare={handleShare}
+            onOpenAuth={openAuthModal}
           />
 
-          {/* Chat or Analytics View */}
-          {activeView === 'chat' ? (
+          {/* Dynamic Role & Application Views */}
+          {activeView === 'coder_memory' ? (
+            <CoderMemoryView
+              onNavigateToChatWithPrompt={handleNavigateToChatWithPrompt}
+              showToast={showToast}
+            />
+          ) : activeView === 'marketing_strategy' ? (
+            <MarketingStrategyView
+              timelineData={timelineData}
+              onAskAboutPin={handleAskAboutPin}
+              onNavigateToChatWithPrompt={handleNavigateToChatWithPrompt}
+              showToast={showToast}
+            />
+          ) : activeView === 'analytics' ? (
+            <AnalyticsView
+              timelineData={timelineData}
+              onAskAboutPin={handleAskAboutPin}
+              onNavigateToChatWithPrompt={handleNavigateToChatWithPrompt}
+            />
+          ) : (
             <ChatView
               messages={currentMessages}
               isThinking={isThinking}
@@ -293,17 +332,18 @@ export default function CopilotPage({ onNavigate, initialView = 'chat' }) {
               onOpenModal={() => setIsFeatureModalOpen(true)}
               showToast={showToast}
             />
-          ) : (
-            <AnalyticsView
-              timelineData={timelineData}
-              onAskAboutPin={handleAskAboutPin}
-              onNavigateToChatWithPrompt={handleNavigateToChatWithPrompt}
-            />
           )}
         </div>
       </div>
 
-      {/* Feature Retain Modal */}
+      {/* Role-Based Authentication & Switcher Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={closeAuthModal}
+        onRoleChanged={handleRoleChanged}
+      />
+
+      {/* Feature Retain Modal (Legacy quick modal) */}
       <FeatureModal
         isOpen={isFeatureModalOpen}
         onClose={() => setIsFeatureModalOpen(false)}
