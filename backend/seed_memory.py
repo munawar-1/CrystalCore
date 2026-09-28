@@ -9,6 +9,11 @@ import sys
 import certifi
 from dotenv import load_dotenv
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8")
+
 os.environ["SSL_CERT_FILE"] = certifi.where()
 load_dotenv()
 

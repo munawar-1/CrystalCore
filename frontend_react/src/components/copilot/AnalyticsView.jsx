@@ -117,7 +117,7 @@ export default function AnalyticsView({
   return (
     <section className="view-container active" id="viewAnalytics">
       <div className="analytics-content">
-        
+
         {/* Header */}
         <div className="analytics-header">
           <div>
@@ -168,7 +168,7 @@ export default function AnalyticsView({
                 Interactive causal timeline • Move cursor across curve to scrub metrics, click pins to inspect
               </span>
             </div>
-            
+
             {/* Interactive Legend with Toggle & Hover Controls */}
             <div className="chart-legend interactive">
               <button
@@ -206,15 +206,15 @@ export default function AnalyticsView({
             </div>
           </div>
 
-          <div 
+          <div
             className="svg-chart-container dynamic-chart"
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
           >
-            <svg 
+            <svg
               ref={svgRef}
-              id="analyticsSvgChart" 
-              viewBox={`0 0 ${width} ${height}`} 
+              id="analyticsSvgChart"
+              viewBox={`0 0 ${width} ${height}`}
               preserveAspectRatio="none"
             >
               <defs>
@@ -234,13 +234,13 @@ export default function AnalyticsView({
 
                 {/* Neon Glow Filters */}
                 <filter id="glowMint" x="-20%" y="-20%" width="140%" height="140%">
-                  <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="#3ee6aa" floodOpacity="0.7"/>
+                  <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="#3ee6aa" floodOpacity="0.7" />
                 </filter>
                 <filter id="glowBlue" x="-20%" y="-20%" width="140%" height="140%">
-                  <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#60a5fa" floodOpacity="0.6"/>
+                  <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#60a5fa" floodOpacity="0.6" />
                 </filter>
                 <filter id="glowAmber" x="-20%" y="-20%" width="140%" height="140%">
-                  <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#f59e0b" floodOpacity="0.6"/>
+                  <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#f59e0b" floodOpacity="0.6" />
                 </filter>
               </defs>
 
@@ -425,8 +425,8 @@ export default function AnalyticsView({
                         filter: isSelected
                           ? 'drop-shadow(0 0 10px rgba(62, 230, 170, 0.9))'
                           : isHovered
-                          ? 'drop-shadow(0 0 8px rgba(62, 230, 170, 0.6))'
-                          : 'none'
+                            ? 'drop-shadow(0 0 8px rgba(62, 230, 170, 0.6))'
+                            : 'none'
                       }}
                       onClick={() => setSelectedPinIndex(idx)}
                     />
@@ -460,7 +460,7 @@ export default function AnalyticsView({
 
             {/* Floating Dynamic Tooltip tracking the Hovered Point */}
             {activeHoverPoint && (
-              <div 
+              <div
                 className="dynamic-chart-tooltip"
                 style={{
                   left: `${(activeHoverPoint.x / width) * 100}%`,
