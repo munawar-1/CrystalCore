@@ -1,4 +1,4 @@
-# GeoHindsight — Autonomous SEO & AI Citation Intelligence Agent
+# CrystalCore — Autonomous SEO & AI Citation Intelligence Agent
 
 > **AI Agent That Learns Using Hindsight Memory**  
 > Tracks 8+ weeks of website changes, competitor moves, and algorithmic shifts to diagnose citation drops and synthesize winning Generative Engine Optimization (GEO) strategies.
