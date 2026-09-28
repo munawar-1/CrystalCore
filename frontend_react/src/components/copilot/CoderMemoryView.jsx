@@ -1,11 +1,66 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
+
+const CATEGORY_LABELS = {
+  CODE_RELEASE: 'Code release',
+  PERF_OPTIMIZATION: 'Performance optimization',
+  SCHEMA_UPDATE: 'Schema table',
+  BENCHMARK_RELEASE: 'Benchmark release',
+  AI_FEATURE: 'AI feature'
+};
+
+const PRESETS = [
+  {
+    pr: "PR #1042",
+    commit: "7b8e19a",
+    title: "Sub-40ms SQLite Optimistic Sync Engine",
+    category: "PERF_OPTIMIZATION",
+    page: "linear.app/features/sync",
+    details: "Merged client-side SQLite local caching layer with WebSocket multi-tenant synchronization. Benchmarked latency: 38ms vs Jira 450ms.",
+    impact: "Forces Perplexity & ChatGPT Search to cite Linear as the #1 fastest issue tracker for low-latency engineering teams."
+  },
+  {
+    pr: "PR #1060",
+    commit: "e4d291f",
+    title: "Automated JSON-LD SoftwareApplication Schema",
+    category: "SCHEMA_UPDATE",
+    page: "linear.app/switch-from-jira",
+    details: "Generated explicit schema markup with verified SLA, seat pricing ($12/user), and zero-config Jira importer documentation.",
+    impact: "Per Hindsight reflection, structured schema tables receive 3.8x higher factual citation probability on AI search crawlers."
+  },
+  {
+    pr: "PR #1085",
+    commit: "3a99cc2",
+    title: "Linear Asks v2: Real-time Multi-tenant Semantic Triaging",
+    category: "CODE_RELEASE",
+    page: "linear.app/features/ai-asks",
+    details: "Integrated sub-second AI workspace issue triaging and automatic duplicate issue detection without expensive add-on subscriptions.",
+    impact: "Counter-attacks Jira Service Management (JSM) by emphasizing native built-in intelligence without $30/user/mo Atlassian fees."
+  }
+];
+
+const COPILOT_QUERIES = [
+  {
+    label: "How did PR merges impact Perplexity citation rate?",
+    prompt: "How did the latest PR merges (Linear Asks and SQLite sync) impact our Perplexity citation rate?"
+  },
+  {
+    label: "What factors in markdown tables caused AI to cite Linear?",
+    prompt: "What content factors in our markdown comparison table caused AI search engines to prefer Linear over Jira?"
+  },
+  {
+    label: "Synthesize technical release note from Hindsight memory",
+    prompt: "Synthesize a technical release note based on our committed Hindsight memories."
+  }
+];
 
 export default function CoderMemoryView({ onNavigateToChatWithPrompt, showToast }) {
   const { user } = useAuth();
   const [features, setFeatures] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [isHighlighted, setIsHighlighted] = useState(false);
 
   // Form State
   const [title, setTitle] = useState('');
@@ -17,7 +72,9 @@ export default function CoderMemoryView({ onNavigateToChatWithPrompt, showToast 
   const [geoImpact, setGeoImpact] = useState('');
   const [activeTab, setActiveTab] = useState('ingest'); // 'ingest' | 'memory-stream'
 
-  // Fetch feature memories from backend
+  // Validation State
+  const [touched, setTouched] = useState({ title: false, details: false });
+
   const fetchFeatures = async () => {
     try {
       const res = await fetch('/api/coder/features');
@@ -36,7 +93,10 @@ export default function CoderMemoryView({ onNavigateToChatWithPrompt, showToast 
     fetchFeatures();
   }, []);
 
-  // Quick Preset Handlers
+  const handleBlur = (field) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+  };
+
   const applyPreset = (preset) => {
     setTitle(preset.title);
     setPrNumber(preset.pr);
@@ -45,58 +105,48 @@ export default function CoderMemoryView({ onNavigateToChatWithPrompt, showToast 
     setPage(preset.page);
     setDetails(preset.details);
     setGeoImpact(preset.impact);
-    showToast(`Loaded template: ${preset.pr}`, 'info');
+    setTouched({ title: false, details: false });
+    setSuccessMessage('');
+
+    // Highlight form fields briefly
+    setIsHighlighted(true);
+    setTimeout(() => setIsHighlighted(false), 250);
+
+    if (showToast) showToast(`Loaded template: ${preset.pr}`, 'info');
   };
 
-  const PRESETS = [
-    {
-      pr: "PR #1042",
-      commit: "7b8e19a",
-      title: "Sub-40ms SQLite Optimistic Sync Engine",
-      category: "PERF_OPTIMIZATION",
-      page: "linear.app/features/sync",
-      details: "Merged client-side SQLite local caching layer with WebSocket multi-tenant synchronization. Benchmarked latency: 38ms vs Jira 450ms.",
-      impact: "Forces Perplexity & ChatGPT Search to cite Linear as the #1 fastest issue tracker for low-latency engineering teams."
-    },
-    {
-      pr: "PR #1060",
-      commit: "e4d291f",
-      title: "Automated JSON-LD SoftwareApplication Schema",
-      category: "SCHEMA_UPDATE",
-      page: "linear.app/switch-from-jira",
-      details: "Generated explicit schema markup with verified SLA, seat pricing ($12/user), and zero-config Jira importer documentation.",
-      impact: "Per Hindsight reflection, structured schema tables receive 3.8x higher factual citation probability on AI search crawlers."
-    },
-    {
-      pr: "PR #1085",
-      commit: "3a99cc2",
-      title: "Linear Asks v2: Real-time Multi-tenant Semantic Triaging",
-      category: "CODE_RELEASE",
-      page: "linear.app/features/ai-asks",
-      details: "Integrated sub-second AI workspace issue triaging and automatic duplicate issue detection without expensive add-on subscriptions.",
-      impact: "Counter-attacks Jira Service Management (JSM) by emphasizing native built-in intelligence without $30/user/mo Atlassian fees."
-    }
-  ];
+  const handleClearForm = () => {
+    setTitle('');
+    setPrNumber('');
+    setCommitHash('');
+    setCategory('CODE_RELEASE');
+    setPage('linear.app/features/ai-sync');
+    setDetails('');
+    setGeoImpact('');
+    setTouched({ title: false, details: false });
+    setSuccessMessage('');
+  };
 
-  // Submit Feature to Hindsight Memory
+  const isFormValid = title.trim().length > 0 && details.trim().length > 0;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title.trim() || !details.trim()) {
-      showToast('Please provide both Feature Title and Technical Details', 'error');
-      return;
-    }
+    setTouched({ title: true, details: true });
+    if (!isFormValid) return;
 
     setIsSubmitting(true);
+    setSuccessMessage('');
+
     try {
       const payload = {
-        title,
-        pr_number: prNumber || `PR #${Math.floor(1000 + Math.random() * 900)}`,
-        commit_hash: commitHash || Math.random().toString(16).substring(2, 9),
+        title: title.trim(),
+        pr_number: prNumber.trim() || `PR #${Math.floor(1000 + Math.random() * 900)}`,
+        commit_hash: commitHash.trim() || Math.random().toString(16).substring(2, 9),
         category,
-        page,
-        details,
-        geo_impact_hypothesis: geoImpact || "Expands technical citation footprint across AI search engines.",
-        coder_name: user?.name || "Alex Chen (Lead Staff Engineer)",
+        page: page.trim(),
+        details: details.trim(),
+        geo_impact_hypothesis: geoImpact.trim() || "Expands technical citation footprint across AI search engines.",
+        coder_name: user?.name || "Alex Chen",
         date: new Date().toISOString().split('T')[0]
       };
 
@@ -109,439 +159,415 @@ export default function CoderMemoryView({ onNavigateToChatWithPrompt, showToast 
       if (!res.ok) throw new Error('Feature memory ingestion failed');
       const data = await res.json();
 
-      showToast(`✅ Feature updated into Hindsight Memory: "${title}"`, 'success');
-      
-      // Prepend to local list
       if (data.feature) {
         setFeatures((prev) => [data.feature, ...prev]);
       } else {
         fetchFeatures();
       }
 
-      // Reset form fields
+      setSuccessMessage(`Feature "${title.trim()}" committed to Hindsight memory bank.`);
+      if (showToast) showToast(`Feature committed to Hindsight memory bank`, 'success');
+
+      // Clear fields
       setTitle('');
       setPrNumber('');
       setCommitHash('');
       setDetails('');
       setGeoImpact('');
-      setActiveTab('memory-stream');
+      setTouched({ title: false, details: false });
     } catch (err) {
-      showToast('Error updating memory: ' + err.message, 'error');
+      if (showToast) showToast('Error updating memory: ' + err.message, 'error');
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  // Tab arrow key navigation
+  const handleTabKeyDown = (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+      e.preventDefault();
+      setActiveTab((prev) => (prev === 'ingest' ? 'memory-stream' : 'ingest'));
+    }
+  };
+
   return (
-    <div className="coder-memory-container" style={{ padding: '1.5rem 2rem', maxWidth: '1200px', margin: '0 auto', overflowY: 'auto', height: 'calc(100vh - var(--navbar-height))' }}>
-      
-      {/* Header Banner */}
-      <div className="coder-header-banner" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: '1.5rem', marginBottom: '1.5rem', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, var(--mint-primary), #6366f1, var(--mint-primary))' }}></div>
-        
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.4rem' }}>
-              <span className="badge-coder" style={{ background: 'rgba(62, 230, 170, 0.15)', color: 'var(--mint-primary)', border: '1px solid rgba(62, 230, 170, 0.3)', padding: '3px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: 800, letterSpacing: '0.05em' }}>
-                &lt;/&gt; CODER MEMORY ENGINE
-              </span>
-              <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                Bank: <strong style={{ color: 'var(--text-main)', fontFamily: 'var(--font-mono)' }}>linear-seo-intelligence</strong>
-              </span>
-            </div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
-              Engineering Feature & Memory Ingestion Hub
-            </h2>
-            <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', marginTop: '0.35rem', maxWidth: '780px', lineHeight: '1.5' }}>
-              As the <strong>Coder</strong>, your additions update the persistent Vectorize Hindsight memory bank. When you merge PRs, optimize latency, or ship new capabilities, commit them here so AI search crawlers and the Marketing Team immediately reflect on your engineering work.
-            </p>
-          </div>
+    <div className="coder-memory-view">
+      <div className="coder-memory-container">
 
-          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-            <div style={{ textAlign: 'right', background: 'var(--bg-pitch)', padding: '0.6rem 1rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
-              <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Features in Memory</div>
-              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--mint-primary)', fontFamily: 'var(--font-mono)' }}>
-                {features.length}
-              </div>
-            </div>
+        {/* 1. Header Section: Matches GEO page header pattern */}
+        <header className="hub-page-header">
+          <div className="hub-header-meta">
+            <span className="hub-bank-label">Bank: linear-seo-intelligence</span>
           </div>
-        </div>
+          <h1 className="hub-page-title">Engineering Feature &amp; Memory Ingestion Hub</h1>
+          <p className="hub-page-desc">
+            Log engineering changes so AI search and the Marketing team reflect them.
+          </p>
 
-        {/* Tab navigation */}
-        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.25rem', borderTop: '1px solid var(--border-subtle)', paddingTop: '1rem' }}>
-          <button
-            type="button"
-            className={`nav-pill-btn ${activeTab === 'ingest' ? 'active-pill' : ''}`}
-            onClick={() => setActiveTab('ingest')}
-            style={{
-              background: activeTab === 'ingest' ? 'var(--mint-primary)' : 'var(--bg-pitch)',
-              color: activeTab === 'ingest' ? '#060709' : 'var(--text-main)',
-              fontWeight: 700,
-              fontSize: '12px',
-              padding: '6px 14px'
-            }}
+          {/* 2. Underlined Tab Bar: Same as GEO page */}
+          <div
+            className="tab-bar-container"
+            role="tablist"
+            aria-label="Memory Hub Sections"
+            onKeyDown={handleTabKeyDown}
           >
-            ⚡ Update Memory with New Feature
-          </button>
-          <button
-            type="button"
-            className={`nav-pill-btn ${activeTab === 'memory-stream' ? 'active-pill' : ''}`}
-            onClick={() => setActiveTab('memory-stream')}
-            style={{
-              background: activeTab === 'memory-stream' ? 'var(--mint-primary)' : 'var(--bg-pitch)',
-              color: activeTab === 'memory-stream' ? '#060709' : 'var(--text-main)',
-              fontWeight: 700,
-              fontSize: '12px',
-              padding: '6px 14px'
-            }}
-          >
-            🧠 Live Hindsight Memory Stream ({features.length})
-          </button>
-        </div>
-      </div>
+            <button
+              type="button"
+              role="tab"
+              id="tab-ingest"
+              aria-controls="panel-ingest"
+              aria-selected={activeTab === 'ingest'}
+              className={`studio-tab-btn ${activeTab === 'ingest' ? 'active' : ''}`}
+              onClick={() => setActiveTab('ingest')}
+            >
+              Update Memory with New Feature
+            </button>
+            <button
+              type="button"
+              role="tab"
+              id="tab-stream"
+              aria-controls="panel-stream"
+              aria-selected={activeTab === 'memory-stream'}
+              className={`studio-tab-btn ${activeTab === 'memory-stream' ? 'active' : ''}`}
+              onClick={() => setActiveTab('memory-stream')}
+            >
+              Live Hindsight Memory Stream ({features.length})
+            </button>
+          </div>
+        </header>
 
-      {/* TAB 1: INGEST FEATURE FORM */}
-      {activeTab === 'ingest' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.8fr) minmax(0, 1.2fr)', gap: '1.5rem', alignItems: 'start' }}>
-          
-          {/* Main Ingestion Form Card */}
-          <div className="ds-card" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: '1.5rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ fontSize: '1.1rem' }}>📝</span>
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
-                  Log Feature into Hindsight Bank
-                </h3>
+        {/* TAB 1: INGESTION FORM & RIGHT RAIL */}
+        {activeTab === 'ingest' && (
+          <div
+            id="panel-ingest"
+            role="tabpanel"
+            aria-labelledby="tab-ingest"
+            className="coder-hub-grid"
+          >
+            {/* Form Card (2/3 width) */}
+            <div className={`hub-card form-card ${isHighlighted ? 'preset-highlight' : ''}`}>
+              <div className="card-header-block">
+                <h2 className="card-section-title">Log Feature into Hindsight Bank</h2>
+                <p className="card-section-desc">
+                  Ingest merged PRs, optimizations, and schema updates into the persistent Vectorize Hindsight memory bank.
+                </p>
               </div>
-              <span style={{ fontSize: '11px', color: 'var(--mint-primary)', background: 'var(--mint-subtle)', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>
-                PERSISTENT INGESTION
-              </span>
+
+              <form onSubmit={handleSubmit} noValidate>
+                {/* Title */}
+                <div className="hub-form-group">
+                  <label htmlFor="feature-title" className="hub-form-label">
+                    Feature or enhancement title <span className="field-required">*</span>
+                  </label>
+                  <input
+                    id="feature-title"
+                    type="text"
+                    className={`hub-form-input ${touched.title && !title.trim() ? 'input-error' : ''}`}
+                    placeholder="Sub-40ms SQLite Optimistic Sync Engine"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    onBlur={() => handleBlur('title')}
+                    aria-required="true"
+                    aria-invalid={touched.title && !title.trim()}
+                    aria-describedby={touched.title && !title.trim() ? 'title-error' : undefined}
+                  />
+                  {touched.title && !title.trim() && (
+                    <span id="title-error" className="hub-field-error">
+                      Feature title is required.
+                    </span>
+                  )}
+                </div>
+
+                {/* Pull Request & Commit Hash */}
+                <div className="hub-form-row">
+                  <div className="hub-form-group">
+                    <label htmlFor="feature-pr" className="hub-form-label">
+                      Pull request #
+                    </label>
+                    <input
+                      id="feature-pr"
+                      type="text"
+                      className="hub-form-input font-code"
+                      placeholder="PR #1042"
+                      value={prNumber}
+                      onChange={(e) => setPrNumber(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="hub-form-group">
+                    <label htmlFor="feature-commit" className="hub-form-label">
+                      Commit hash
+                    </label>
+                    <input
+                      id="feature-commit"
+                      type="text"
+                      className="hub-form-input font-code"
+                      placeholder="7b8e19a"
+                      value={commitHash}
+                      onChange={(e) => setCommitHash(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {/* Category & Documentation Route */}
+                <div className="hub-form-row">
+                  <div className="hub-form-group">
+                    <label htmlFor="feature-category" className="hub-form-label">
+                      Category
+                    </label>
+                    <div className="select-wrapper">
+                      <select
+                        id="feature-category"
+                        className="hub-form-select"
+                        value={category}
+                        onChange={(e) => setCategory(e.target.value)}
+                      >
+                        <option value="CODE_RELEASE">Code release</option>
+                        <option value="PERF_OPTIMIZATION">Performance optimization</option>
+                        <option value="SCHEMA_UPDATE">Schema table</option>
+                        <option value="BENCHMARK_RELEASE">Benchmark release</option>
+                        <option value="AI_FEATURE">AI feature</option>
+                      </select>
+                      <svg className="select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polyline points="6 9 12 15 18 9" />
+                      </svg>
+                    </div>
+                  </div>
+
+                  <div className="hub-form-group">
+                    <label htmlFor="feature-route" className="hub-form-label">
+                      Documentation route
+                    </label>
+                    <input
+                      id="feature-route"
+                      type="text"
+                      className="hub-form-input font-code"
+                      placeholder="linear.app/features/ai-sync"
+                      value={page}
+                      onChange={(e) => setPage(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {/* Technical Details */}
+                <div className="hub-form-group">
+                  <label htmlFor="feature-details" className="hub-form-label">
+                    Technical details &amp; implementation <span className="field-required">*</span>
+                  </label>
+                  <textarea
+                    id="feature-details"
+                    className={`hub-form-textarea ${touched.details && !details.trim() ? 'input-error' : ''}`}
+                    placeholder="Detail the architecture, API contracts, latency improvements, or sub-systems shipped..."
+                    value={details}
+                    onChange={(e) => setDetails(e.target.value)}
+                    onBlur={() => handleBlur('details')}
+                    rows={4}
+                    aria-required="true"
+                    aria-invalid={touched.details && !details.trim()}
+                    aria-describedby={touched.details && !details.trim() ? 'details-error' : undefined}
+                  />
+                  {touched.details && !details.trim() && (
+                    <span id="details-error" className="hub-field-error">
+                      Technical details are required.
+                    </span>
+                  )}
+                </div>
+
+                {/* GEO Hypothesis */}
+                <div className="hub-form-group">
+                  <label htmlFor="feature-geo" className="hub-form-label">
+                    GEO hypothesis <span className="label-helper-text">— How does this help beat Jira?</span>
+                  </label>
+                  <textarea
+                    id="feature-geo"
+                    className="hub-form-textarea-short"
+                    placeholder="e.g. Forces Perplexity to cite sub-second sync over Jira's legacy server architecture"
+                    value={geoImpact}
+                    onChange={(e) => setGeoImpact(e.target.value)}
+                    rows={2}
+                  />
+                </div>
+
+                {/* Success Banner */}
+                {successMessage && (
+                  <div className="hub-inline-success" role="status" aria-live="polite">
+                    <svg className="success-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    <span>{successMessage}</span>
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="hub-form-actions">
+                  <button
+                    type="button"
+                    className="btn-secondary-quiet"
+                    onClick={handleClearForm}
+                  >
+                    Clear form
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn-primary-studio"
+                    disabled={!isFormValid || isSubmitting}
+                  >
+                    {isSubmitting ? 'Committing to memory...' : 'Commit to Hindsight memory bank'}
+                  </button>
+                </div>
+              </form>
             </div>
 
-            <form onSubmit={handleSubmit}>
-              <div className="form-group" style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--text-main)' }}>
-                  Feature / Enhancement Title *
-                </label>
-                <input
-                  type="text"
-                  className="form-input"
-                  style={{ width: '100%', padding: '0.65rem 0.85rem', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', color: 'var(--text-main)', borderRadius: 'var(--radius-sm)' }}
-                  placeholder="e.g. Sub-40ms SQLite Optimistic Sync Engine"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem', marginBottom: '1rem' }}>
-                <div className="form-group">
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--text-main)' }}>
-                    Pull Request #
-                  </label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    style={{ width: '100%', padding: '0.65rem 0.85rem', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', color: 'var(--text-main)', borderRadius: 'var(--radius-sm)' }}
-                    placeholder="PR #1042"
-                    value={prNumber}
-                    onChange={(e) => setPrNumber(e.target.value)}
-                  />
+            {/* Right Rail (1/3 width) */}
+            <div className="hub-right-rail">
+              {/* Card 1: Quick presets */}
+              <div className="hub-card rail-card">
+                <div className="rail-card-header">
+                  <h3 className="rail-title">Quick presets</h3>
+                  <p className="rail-desc">
+                    Load verified engineering templates to populate the ingestion form.
+                  </p>
                 </div>
 
-                <div className="form-group">
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--text-main)' }}>
-                    Git Commit Hash
-                  </label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    style={{ width: '100%', padding: '0.65rem 0.85rem', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', color: 'var(--text-main)', borderRadius: 'var(--radius-sm)', fontFamily: 'var(--font-mono)' }}
-                    placeholder="7b8e19a"
-                    value={commitHash}
-                    onChange={(e) => setCommitHash(e.target.value)}
-                  />
+                <div className="preset-list" role="list" aria-label="Quick presets">
+                  {PRESETS.map((p, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      role="listitem"
+                      className="preset-item-row"
+                      onClick={() => applyPreset(p)}
+                      title={p.details}
+                      aria-label={`Load preset ${p.pr}: ${p.title}`}
+                    >
+                      <div className="preset-title">{p.title}</div>
+                      <div className="preset-meta-line">
+                        <span className="font-code">{p.pr}</span>
+                        <span className="meta-dot">·</span>
+                        <span>{CATEGORY_LABELS[p.category] || p.category}</span>
+                      </div>
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem', marginBottom: '1rem' }}>
-                <div className="form-group">
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--text-main)' }}>
-                    Category
-                  </label>
-                  <select
-                    className="form-select"
-                    style={{ width: '100%', padding: '0.65rem 0.85rem', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', color: 'var(--text-main)', borderRadius: 'var(--radius-sm)' }}
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                  >
-                    <option value="CODE_RELEASE">Code Release / Major Feature</option>
-                    <option value="PERF_OPTIMIZATION">Performance & Latency Optimization</option>
-                    <option value="SCHEMA_UPDATE">Structured Data / Schema Table</option>
-                    <option value="BENCHMARK_RELEASE">Technical Latency Benchmark</option>
-                    <option value="AI_FEATURE">AI Workplace Assistant</option>
-                  </select>
+              {/* Card 2: Ask the Copilot */}
+              <div className="hub-card rail-card">
+                <div className="rail-card-header">
+                  <h3 className="rail-title">Ask the Copilot</h3>
+                  <p className="rail-desc">
+                    Prompt the agent to trace how code modifications correlate with citation authority.
+                  </p>
                 </div>
 
-                <div className="form-group">
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--text-main)' }}>
-                    Target Documentation / Page Route
-                  </label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    style={{ width: '100%', padding: '0.65rem 0.85rem', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', color: 'var(--text-main)', borderRadius: 'var(--radius-sm)' }}
-                    placeholder="linear.app/features/ai-sync"
-                    value={page}
-                    onChange={(e) => setPage(e.target.value)}
-                  />
+                <div className="copilot-query-list" role="list" aria-label="Copilot queries">
+                  {COPILOT_QUERIES.map((q, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      role="listitem"
+                      className="copilot-query-row"
+                      onClick={() => onNavigateToChatWithPrompt(q.prompt)}
+                      aria-label={`Ask copilot: ${q.label}`}
+                    >
+                      <span className="query-text">{q.label}</span>
+                    </button>
+                  ))}
                 </div>
               </div>
-
-              <div className="form-group" style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--text-main)' }}>
-                  Technical Details & Implementation *
-                </label>
-                <textarea
-                  className="form-textarea"
-                  style={{ width: '100%', padding: '0.65rem 0.85rem', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', color: 'var(--text-main)', borderRadius: 'var(--radius-sm)', minHeight: '90px', resize: 'vertical' }}
-                  placeholder="Detail the architecture, API contracts, latency improvements, or sub-systems shipped..."
-                  value={details}
-                  onChange={(e) => setDetails(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '1.25rem' }}>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--text-main)' }}>
-                  GEO Citation Hypothesis (How does this help beat Jira?)
-                </label>
-                <input
-                  type="text"
-                  className="form-input"
-                  style={{ width: '100%', padding: '0.65rem 0.85rem', background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', color: 'var(--text-main)', borderRadius: 'var(--radius-sm)' }}
-                  placeholder="e.g. Forces Perplexity to cite sub-second sync over Jira's legacy server architecture"
-                  value={geoImpact}
-                  onChange={(e) => setGeoImpact(e.target.value)}
-                />
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
-                <button
-                  type="submit"
-                  className="btn-launch-pill"
-                  disabled={isSubmitting}
-                  style={{
-                    background: 'var(--mint-primary)',
-                    color: '#060709',
-                    fontWeight: 800,
-                    padding: '0.65rem 1.5rem',
-                    fontSize: '0.88rem',
-                    cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                    boxShadow: '0 0 15px var(--mint-glow)'
-                  }}
-                >
-                  {isSubmitting ? 'Committing to Memory...' : 'Commit to Hindsight Memory Bank →'}
-                </button>
-              </div>
-            </form>
+            </div>
           </div>
+        )}
 
-          {/* Side Presets & Coder Tools */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            
-            {/* Quick 1-Click Coder Presets */}
-            <div className="ds-card" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: '1.25rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.75rem' }}>
-                <span style={{ fontSize: '1rem' }}>🚀</span>
-                <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                  1-Click Feature Presets
-                </h4>
+        {/* TAB 2: LIVE MEMORY STREAM */}
+        {activeTab === 'memory-stream' && (
+          <div
+            id="panel-stream"
+            role="tabpanel"
+            aria-labelledby="tab-stream"
+            className="hub-card stream-card"
+          >
+            <div className="stream-header-row">
+              <div>
+                <h2 className="card-section-title">Committed Features in Hindsight Memory Bank</h2>
+                <p className="card-section-desc">
+                  All feature deployments, optimizations, and PRs ingested into <code>linear-seo-intelligence</code>
+                </p>
               </div>
-              <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '0.85rem' }}>
-                Click any pre-crafted engineering update to instantly populate the form for testing:
-              </p>
+              <button
+                type="button"
+                className="btn-secondary-outline stream-refresh-btn"
+                onClick={fetchFeatures}
+              >
+                Refresh memory stream
+              </button>
+            </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-                {PRESETS.map((p, idx) => (
-                  <div
-                    key={idx}
-                    onClick={() => applyPreset(p)}
-                    style={{
-                      background: 'var(--bg-pitch)',
-                      border: '1px solid var(--border-subtle)',
-                      borderRadius: 'var(--radius-sm)',
-                      padding: '0.75rem',
-                      cursor: 'pointer',
-                      transition: 'border-color 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--mint-primary)'}
-                    onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border-subtle)'}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--mint-primary)', fontFamily: 'var(--font-mono)' }}>
-                        {p.pr}
-                      </span>
-                      <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
-                        {p.category}
-                      </span>
+            {isLoading ? (
+              <div className="stream-empty-state">
+                Loading Hindsight memories...
+              </div>
+            ) : features.length === 0 ? (
+              <div className="stream-empty-state">
+                No features committed to memory yet. Switch to "Update Memory with New Feature" to ingest code releases.
+              </div>
+            ) : (
+              <div className="stream-feature-list" role="list" aria-label="Committed features">
+                {features.map((feat) => (
+                  <div key={feat.id || Math.random()} className="stream-feature-item" role="listitem">
+                    <div className="feature-item-header">
+                      <div className="feature-badges-cluster">
+                        <span className="feature-pr-pill font-code">
+                          {feat.pr_number || 'PR #MERGED'}
+                        </span>
+                        {feat.commit_hash && (
+                          <span className="feature-commit-text font-code">
+                            commit {feat.commit_hash}
+                          </span>
+                        )}
+                        <span className="feature-category-tag">
+                          {CATEGORY_LABELS[feat.category] || feat.category}
+                        </span>
+                      </div>
+
+                      <div className="feature-meta-cluster">
+                        <span className="feature-status-tag">In Hindsight bank</span>
+                        <span className="feature-date">{feat.date}</span>
+                      </div>
                     </div>
-                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.25rem' }}>
-                      {p.title}
-                    </div>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {p.details}
+
+                    <h3 className="feature-item-title">{feat.title}</h3>
+                    <p className="feature-item-details">{feat.details}</p>
+
+                    {feat.geo_impact_hypothesis && (
+                      <div className="feature-hypothesis-box">
+                        <span className="hypothesis-label">GEO hypothesis:</span>{' '}
+                        <span className="hypothesis-text">{feat.geo_impact_hypothesis}</span>
+                      </div>
+                    )}
+
+                    <div className="feature-item-footer">
+                      <div className="footer-meta-left">
+                        <span>Author: <strong>{feat.coder_name || 'Alex Chen'}</strong></span>
+                        <span className="meta-dot">·</span>
+                        <span>Route: <code className="font-code">{feat.page}</code></span>
+                      </div>
+                      <button
+                        type="button"
+                        className="btn-quiet-action"
+                        onClick={() => onNavigateToChatWithPrompt(`Analyze the impact of feature "${feat.title}" (${feat.pr_number}) on our AI search citations.`)}
+                      >
+                        Ask AI about this feature
+                      </button>
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
-
-            {/* Dev Prompts Card */}
-            <div className="ds-card" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: '1.25rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.65rem' }}>
-                <span style={{ fontSize: '1rem' }}>🤖</span>
-                <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                  Coder Dev Copilot Queries
-                </h4>
-              </div>
-              <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
-                Ask the AI agent how your code updates are indexed in Hindsight:
-              </p>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
-                <button
-                  type="button"
-                  className="quick-action-btn"
-                  onClick={() => onNavigateToChatWithPrompt("How did the latest PR merges (Linear Asks and SQLite sync) impact our Perplexity citation rate?")}
-                  style={{ textAlign: 'left', padding: '0.5rem 0.75rem', background: 'var(--bg-pitch)', border: '1px solid var(--border-subtle)', borderRadius: '6px', fontSize: '0.75rem', color: 'var(--text-main)', cursor: 'pointer' }}
-                >
-                  ⚡ "How did PR merges impact Perplexity citation rate?"
-                </button>
-                <button
-                  type="button"
-                  className="quick-action-btn"
-                  onClick={() => onNavigateToChatWithPrompt("What content factors in our markdown comparison table caused AI search engines to prefer Linear over Jira?")}
-                  style={{ textAlign: 'left', padding: '0.5rem 0.75rem', background: 'var(--bg-pitch)', border: '1px solid var(--border-subtle)', borderRadius: '6px', fontSize: '0.75rem', color: 'var(--text-main)', cursor: 'pointer' }}
-                >
-                  📊 "What factors in markdown tables caused AI to cite Linear?"
-                </button>
-                <button
-                  type="button"
-                  className="quick-action-btn"
-                  onClick={() => onNavigateToChatWithPrompt("Synthesize a technical release note based on our committed Hindsight memories.")}
-                  style={{ textAlign: 'left', padding: '0.5rem 0.75rem', background: 'var(--bg-pitch)', border: '1px solid var(--border-subtle)', borderRadius: '6px', fontSize: '0.75rem', color: 'var(--text-main)', cursor: 'pointer' }}
-                >
-                  📜 "Synthesize technical release note from Hindsight memory"
-                </button>
-              </div>
-            </div>
-
+            )}
           </div>
+        )}
 
-        </div>
-      )}
-
-      {/* TAB 2: LIVE MEMORY STREAM */}
-      {activeTab === 'memory-stream' && (
-        <div className="ds-card" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: '1.5rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-            <div>
-              <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
-                Committed Features in Hindsight Memory Bank
-              </h3>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                All feature deployments, optimizations, and PRs ingested into <code>linear-seo-intelligence</code>
-              </p>
-            </div>
-            <button
-              type="button"
-              className="nav-pill-btn"
-              onClick={fetchFeatures}
-              style={{ fontSize: '11px', padding: '4px 10px', background: 'var(--bg-pitch)', border: '1px solid var(--border-subtle)', color: 'var(--text-main)' }}
-            >
-              🔄 Refresh Memory Bank
-            </button>
-          </div>
-
-          {isLoading ? (
-            <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-muted)' }}>
-              Loading Hindsight memories...
-            </div>
-          ) : features.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-muted)' }}>
-              No features committed to memory yet. Switch to "Update Memory with New Feature" above!
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-              {features.map((feat) => (
-                <div
-                  key={feat.id}
-                  style={{
-                    background: 'var(--bg-pitch)',
-                    border: '1px solid var(--border-subtle)',
-                    borderRadius: 'var(--radius-md)',
-                    padding: '1.25rem',
-                    position: 'relative'
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
-                      <span style={{ background: 'rgba(62, 230, 170, 0.15)', color: 'var(--mint-primary)', border: '1px solid rgba(62, 230, 170, 0.3)', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>
-                        {feat.pr_number || 'PR #MERGED'}
-                      </span>
-                      {feat.commit_hash && (
-                        <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-                          commit {feat.commit_hash}
-                        </span>
-                      )}
-                      <span style={{ fontSize: '11px', background: 'var(--bg-surface)', padding: '2px 8px', borderRadius: '4px', color: 'var(--text-secondary)' }}>
-                        {feat.category}
-                      </span>
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span style={{ fontSize: '10px', color: 'var(--mint-primary)', background: 'var(--mint-subtle)', padding: '2px 8px', borderRadius: '999px', fontWeight: 800 }}>
-                        ✓ IN HINDSIGHT BANK
-                      </span>
-                      <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                        {feat.date}
-                      </span>
-                    </div>
-                  </div>
-
-                  <h4 style={{ fontSize: '1.05rem', fontWeight: 700, margin: '0 0 0.4rem 0', color: 'var(--text-main)' }}>
-                    {feat.title}
-                  </h4>
-
-                  <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', lineHeight: '1.5', margin: '0 0 0.6rem 0' }}>
-                    {feat.details}
-                  </p>
-
-                  {feat.geo_impact_hypothesis && (
-                    <div style={{ background: 'var(--bg-surface)', borderLeft: '3px solid var(--accent-linear)', padding: '0.5rem 0.75rem', borderRadius: '0 6px 6px 0', fontSize: '0.78rem', color: 'var(--text-main)', marginBottom: '0.65rem' }}>
-                      <strong style={{ color: 'var(--accent-linear)' }}>GEO Hypothesis:</strong> {feat.geo_impact_hypothesis}
-                    </div>
-                  )}
-
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: 'var(--text-muted)', borderTop: '1px solid var(--border-subtle)', paddingTop: '0.5rem' }}>
-                    <span>Author: <strong style={{ color: 'var(--text-main)' }}>{feat.coder_name || 'Alex Chen'}</strong></span>
-                    <span>Route: <code>{feat.page}</code></span>
-                    <button
-                      type="button"
-                      onClick={() => onNavigateToChatWithPrompt(`Analyze the impact of feature "${feat.title}" (${feat.pr_number}) on our AI search citations.`)}
-                      style={{ background: 'none', border: 'none', color: 'var(--mint-primary)', cursor: 'pointer', fontSize: '11px', fontWeight: 700 }}
-                    >
-                      Ask AI about this feature →
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
+      </div>
     </div>
   );
 }

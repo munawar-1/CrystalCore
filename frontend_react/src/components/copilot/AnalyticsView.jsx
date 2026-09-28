@@ -14,9 +14,9 @@ export default function AnalyticsView({
   const events = timelineData?.timeline || [];
   const selectedEvent = events[selectedPinIndex] || null;
 
-  // SVG Chart Dimensions
+  // SVG Chart Dimensions (16:6 aspect ratio: 1000 x 375)
   const width = 1000;
-  const height = 300;
+  const height = 375;
   const padding = { top: 35, right: 35, bottom: 45, left: 55 };
   const plotWidth = width - padding.left - padding.right;
   const plotHeight = height - padding.top - padding.bottom;
@@ -25,6 +25,7 @@ export default function AnalyticsView({
   const ptsPerp = [];
   const ptsGpt = [];
   const ptsGoogle = [];
+  const googleColors = ['#4285f4', '#ea4335', '#fbbc05', '#34a853'];
 
   events.forEach((evt, idx) => {
     const x = padding.left + (idx / Math.max(1, events.length - 1)) * plotWidth;
@@ -44,7 +45,7 @@ export default function AnalyticsView({
     ptsGoogle.push({ x, y: yGoogle, evt, val: googleRank, idx });
   });
 
-  // Smooth Catmull-Rom / Cubic Bezier curve generator
+  // Smooth Cubic Bezier curve generator
   const makeSmoothPath = (pts) => {
     if (!pts || pts.length === 0) return "";
     if (pts.length === 1) return `M ${pts[0].x} ${pts[0].y}`;
@@ -114,100 +115,136 @@ export default function AnalyticsView({
   const anomalyXStart = ptsPerp[4]?.x ?? padding.left;
   const anomalyXEnd = ptsPerp[ptsPerp.length - 1]?.x ?? (width - padding.right);
 
+  // Show only 5 to 6 date labels instead of all points
+  const shouldShowDateLabel = (idx, total) => {
+    if (total <= 6) return true;
+    // Exactly 5 evenly spaced milestone indices for 10 data points: [0, 2, 4, 7, 9]
+    const milestoneSet = new Set([0, Math.floor(total * 0.25), 4, 7, total - 1]);
+    return milestoneSet.has(idx);
+  };
+
+  const renderImpactContent = (evt) => {
+    if (!evt?.significance) return null;
+    const sig = evt.significance;
+    if (sig.includes('78%') && sig.includes('81%')) {
+      return (
+        <span>
+          Catastrophic <strong>78% citation drop</strong> and <strong>81% referral drop</strong> in weekly AI referral signups.
+        </span>
+      );
+    }
+    const parts = sig.split(/(\d+%(?:\s+[\w-]+)?)/g);
+    return (
+      <span>
+        {parts.map((p, i) => /^\d+%/.test(p) ? <strong key={i}>{p}</strong> : p)}
+      </span>
+    );
+  };
+
   return (
-    <section className="view-container active" id="viewAnalytics">
+    <div className="analytics-section-wrapper" id="viewAnalytics">
       <div className="analytics-content">
 
-        {/* Header */}
+        {/* Section 3: Heading Area (One heading, one short subtitle, pill removed) */}
         <div className="analytics-header">
           <div>
-            <h2 className="page-title">Competitive Citation Analytics</h2>
-            <p className="page-subtitle">
-              Historical correlation of on-page modifications, competitor releases, and AI answer engine visibility.
+            <h2 className="section-heading">Competitive Citation Analytics</h2>
+            <p className="section-subtitle">
+              Historical correlation of on-page modifications, competitor releases, and AI answer engine visibility. Last 8 weeks.
             </p>
-          </div>
-          <div className="time-range-pill">
-            <span className="live-pulse-dot"></span>
-            <span>8-Week Audit Window</span>
           </div>
         </div>
 
-        {/* KPI Cards Strip (All Green Theme, Zero Static Reasoning) */}
+        {/* Section 4: KPI Cards (Equal width/height CSS grid, no glowing outlines, strict hierarchy) */}
         <div className="analytics-kpi-grid">
           <div className="kpi-card">
             <div className="kpi-label">Perplexity Citation Share</div>
             <div className="kpi-val">18.4%</div>
-            <div className="kpi-meta"><span className="trend-green">-70%</span> from 88% peak (Feb 14)</div>
+            <div className="kpi-delta">
+              <span className="delta-neg">-70%</span> <span className="delta-text">from 88% peak (Feb 14)</span>
+            </div>
           </div>
 
           <div className="kpi-card">
             <div className="kpi-label">Atlassian Jira Lead</div>
             <div className="kpi-val">74.2%</div>
-            <div className="kpi-meta"><span className="trend-green">+56%</span> captured comparison queries</div>
+            <div className="kpi-delta">
+              <span className="delta-pos">+56%</span> <span className="delta-text">captured comparison queries</span>
+            </div>
           </div>
 
           <div className="kpi-card">
             <div className="kpi-label">Weekly AI Referrals</div>
             <div className="kpi-val">310 / wk</div>
-            <div className="kpi-meta"><span className="trend-green">-81%</span> dropped from 1,650/wk</div>
+            <div className="kpi-delta">
+              <span className="delta-neg">-81%</span> <span className="delta-text">dropped from 1,650/wk</span>
+            </div>
           </div>
 
           <div className="kpi-card">
             <div className="kpi-label">Primary Root Vulnerability</div>
-            <div className="kpi-val-sm" style={{ color: 'var(--mint-primary)', fontWeight: '700' }}>Diagnostic Alert</div>
-            <div className="kpi-meta">Requires AI Causal Diagnosis</div>
+            <div className="kpi-val kpi-val-text">Diagnostic Alert</div>
+            <div className="kpi-delta">
+              <span className="delta-text">Requires AI Causal Diagnosis</span>
+            </div>
           </div>
         </div>
 
-        {/* Multi-Metric Dynamic Interactive SVG Chart */}
+        {/* Section 5: Chart Card (Single container, legend row with line swatches, faint area fill, 12px axis font) */}
         <div className="chart-card">
           <div className="chart-card-header">
             <div>
               <h3 className="chart-title">8-Week Multi-Metric Timeline Curve</h3>
-              <span className="chart-subtitle">
+              <p className="chart-subtitle">
                 Interactive causal timeline • Move cursor across curve to scrub metrics, click pins to inspect
-              </span>
+              </p>
             </div>
 
-            {/* Interactive Legend with Toggle & Hover Controls */}
-            <div className="chart-legend interactive">
+            {/* Plain Legend Row with Line Swatches */}
+            <div className="chart-legend-row" role="group" aria-label="Toggle Chart Series">
               <button
-                className={`legend-btn ${activeSeries.perp ? 'active' : 'dimmed'} ${hoveredSeries === 'perp' ? 'highlighted' : ''}`}
+                type="button"
+                className={`legend-item ${activeSeries.perp ? 'active' : 'dimmed'}`}
                 onClick={() => toggleSeries('perp')}
                 onMouseEnter={() => setHoveredSeries('perp')}
                 onMouseLeave={() => setHoveredSeries(null)}
-                title="Click to toggle Perplexity Citation %"
+                aria-pressed={activeSeries.perp}
+                title="Toggle Perplexity Citation %"
               >
-                <span className="legend-dot perp" style={{ background: '#3ee6aa' }}></span>
-                <span>Perplexity Citation %</span>
+                <span className="legend-swatch swatch-perp"></span>
+                <span className="legend-text">Perplexity Citation %</span>
               </button>
 
               <button
-                className={`legend-btn ${activeSeries.gpt ? 'active' : 'dimmed'} ${hoveredSeries === 'gpt' ? 'highlighted' : ''}`}
+                type="button"
+                className={`legend-item ${activeSeries.gpt ? 'active' : 'dimmed'}`}
                 onClick={() => toggleSeries('gpt')}
                 onMouseEnter={() => setHoveredSeries('gpt')}
                 onMouseLeave={() => setHoveredSeries(null)}
-                title="Click to toggle ChatGPT Search %"
+                aria-pressed={activeSeries.gpt}
+                title="Toggle ChatGPT Search %"
               >
-                <span className="legend-dot gpt" style={{ background: '#60a5fa' }}></span>
-                <span>ChatGPT Search %</span>
+                <span className="legend-swatch swatch-gpt"></span>
+                <span className="legend-text">ChatGPT Search %</span>
               </button>
 
               <button
-                className={`legend-btn ${activeSeries.google ? 'active' : 'dimmed'} ${hoveredSeries === 'google' ? 'highlighted' : ''}`}
+                type="button"
+                className={`legend-item ${activeSeries.google ? 'active' : 'dimmed'}`}
                 onClick={() => toggleSeries('google')}
                 onMouseEnter={() => setHoveredSeries('google')}
                 onMouseLeave={() => setHoveredSeries(null)}
-                title="Click to toggle Google Rank"
+                aria-pressed={activeSeries.google}
+                title="Toggle Gemini / Google Rank"
               >
-                <span className="legend-dot google" style={{ background: '#f59e0b' }}></span>
-                <span>Google Rank</span>
+                <span className="legend-swatch swatch-google"></span>
+                <span className="legend-text">Gemini / Google Rank</span>
               </button>
             </div>
           </div>
 
           <div
-            className="svg-chart-container dynamic-chart"
+            className="svg-chart-container"
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
           >
@@ -216,35 +253,26 @@ export default function AnalyticsView({
               id="analyticsSvgChart"
               viewBox={`0 0 ${width} ${height}`}
               preserveAspectRatio="none"
+              style={{ width: '100%', height: '100%', display: 'block' }}
             >
               <defs>
-                {/* Area Gradient for Perplexity Curve */}
+                {/* Very faint gradient under Perplexity curve */}
                 <linearGradient id="perpAreaGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#3ee6aa" stopOpacity="0.32" />
-                  <stop offset="60%" stopColor="#3ee6aa" stopOpacity="0.08" />
-                  <stop offset="100%" stopColor="#3ee6aa" stopOpacity="0.0" />
+                  <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.06" />
+                  <stop offset="100%" stopColor="#38bdf8" stopOpacity="0.0" />
                 </linearGradient>
 
-                {/* Anomaly Highlight Zone Gradient */}
-                <linearGradient id="anomalyZoneGradient" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#3ee6aa" stopOpacity="0.04" />
-                  <stop offset="50%" stopColor="#3ee6aa" stopOpacity="0.12" />
-                  <stop offset="100%" stopColor="#3ee6aa" stopOpacity="0.06" />
+                {/* Gemini (Google Colors) Gradient */}
+                <linearGradient id="googleGeminiGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#4285f4" />
+                  <stop offset="28%" stopColor="#9b72cf" />
+                  <stop offset="55%" stopColor="#ea4335" />
+                  <stop offset="78%" stopColor="#fbbc05" />
+                  <stop offset="100%" stopColor="#34a853" />
                 </linearGradient>
-
-                {/* Neon Glow Filters */}
-                <filter id="glowMint" x="-20%" y="-20%" width="140%" height="140%">
-                  <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="#3ee6aa" floodOpacity="0.7" />
-                </filter>
-                <filter id="glowBlue" x="-20%" y="-20%" width="140%" height="140%">
-                  <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#60a5fa" floodOpacity="0.6" />
-                </filter>
-                <filter id="glowAmber" x="-20%" y="-20%" width="140%" height="140%">
-                  <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#f59e0b" floodOpacity="0.6" />
-                </filter>
               </defs>
 
-              {/* Anomaly Detection Zone Band */}
+              {/* Causal Anomaly Detection Zone Band */}
               {anomalyXStart && anomalyXEnd && (
                 <g className="anomaly-zone-group">
                   <rect
@@ -252,33 +280,31 @@ export default function AnalyticsView({
                     y={padding.top}
                     width={anomalyXEnd - anomalyXStart}
                     height={plotHeight}
-                    fill="url(#anomalyZoneGradient)"
-                    rx="6"
+                    fill="rgba(62, 230, 170, 0.05)"
                   />
                   <line
                     x1={anomalyXStart}
                     y1={padding.top}
                     x2={anomalyXStart}
                     y2={padding.top + plotHeight}
-                    stroke="#3ee6aa"
-                    strokeWidth="1.5"
+                    stroke="rgba(62, 230, 170, 0.35)"
+                    strokeWidth="1"
                     strokeDasharray="4 4"
-                    strokeOpacity="0.6"
                   />
                   <text
-                    x={anomalyXStart + 10}
-                    y={padding.top + 16}
+                    x={anomalyXStart + 12}
+                    y={padding.top + 20}
                     fill="#3ee6aa"
-                    fontSize="10"
-                    fontWeight="700"
-                    letterSpacing="0.04em"
+                    fontSize="12"
+                    fontWeight="600"
+                    fontFamily="var(--font-sans)"
                   >
-                    ✦ Causal Anomaly Window (-70% Drop)
+                    Causal Anomaly Window (-70% Drop)
                   </text>
                 </g>
               )}
 
-              {/* Horizontal Grid lines */}
+              {/* Horizontal Grid lines (5 ticks: 0, 25, 50, 75, 100%) */}
               {[0, 25, 50, 75, 100].map((yVal) => {
                 const y = padding.top + plotHeight - (yVal / 100) * plotHeight;
                 return (
@@ -289,14 +315,14 @@ export default function AnalyticsView({
                       x2={width - padding.right}
                       y2={y}
                       stroke="rgba(255, 255, 255, 0.06)"
-                      strokeDasharray="4 4"
+                      strokeDasharray="3 3"
                     />
                     <text
                       x={padding.left - 12}
                       y={y + 4}
-                      fill="#71717a"
-                      fontSize="10"
-                      fontFamily="var(--font-mono)"
+                      fill="#a1a1aa"
+                      fontSize="12"
+                      fontFamily="var(--font-sans)"
                       textAnchor="end"
                     >
                       {yVal}%
@@ -305,75 +331,54 @@ export default function AnalyticsView({
                 );
               })}
 
-              {/* Glowing Gradient Area under Perplexity curve */}
+              {/* Faint Area fill under Perplexity curve */}
               {areaStr && activeSeries.perp && (
                 <path d={areaStr} fill="url(#perpAreaGradient)" />
               )}
 
-              {/* Google Rank Curve (Smooth Bezier) */}
+              {/* Gemini / Google Rank Curve (Google Signature Colors) */}
               {ptsGoogle.length > 0 && activeSeries.google && (
                 <path
                   d={smoothGooglePath}
                   fill="none"
-                  stroke="#f59e0b"
-                  strokeWidth={hoveredSeries === 'google' ? 3.5 : 2}
+                  stroke="url(#googleGeminiGradient)"
+                  strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  filter={hoveredSeries === 'google' ? 'url(#glowAmber)' : 'none'}
-                  opacity={hoveredSeries && hoveredSeries !== 'google' ? 0.25 : 0.85}
-                  style={{ transition: 'all 0.2s' }}
+                  strokeDasharray="4 3"
+                  opacity={hoveredSeries && hoveredSeries !== 'google' ? 0.25 : 0.95}
+                  style={{ transition: 'opacity 0.2s' }}
                 />
               )}
 
-              {/* ChatGPT Search Curve (Smooth Bezier) */}
+              {/* ChatGPT Search Curve (Crisp White #ffffff, Dashed) */}
               {ptsGpt.length > 0 && activeSeries.gpt && (
                 <path
                   d={smoothGptPath}
                   fill="none"
-                  stroke="#60a5fa"
-                  strokeWidth={hoveredSeries === 'gpt' ? 3.5 : 2.2}
+                  stroke="#ffffff"
+                  strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  filter={hoveredSeries === 'gpt' ? 'url(#glowBlue)' : 'none'}
-                  opacity={hoveredSeries && hoveredSeries !== 'gpt' ? 0.25 : 0.9}
-                  style={{ transition: 'all 0.2s' }}
+                  strokeDasharray="5 3"
+                  opacity={hoveredSeries && hoveredSeries !== 'gpt' ? 0.25 : 0.95}
+                  style={{ transition: 'opacity 0.2s' }}
                 />
               )}
 
-              {/* Perplexity Curve (Smooth Bezier with Mint Neon Glow) */}
+              {/* Perplexity Curve (Electric Blue #38bdf8, Solid) */}
               {ptsPerp.length > 0 && activeSeries.perp && (
                 <path
                   d={smoothPerpPath}
                   fill="none"
-                  stroke="#3ee6aa"
-                  strokeWidth={hoveredSeries === 'perp' ? 4 : 3}
+                  stroke="#38bdf8"
+                  strokeWidth="2.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  filter="url(#glowMint)"
                   opacity={hoveredSeries && hoveredSeries !== 'perp' ? 0.25 : 1}
-                  style={{ transition: 'all 0.2s' }}
+                  style={{ transition: 'opacity 0.2s' }}
                 />
               )}
-
-              {/* Animated Pulse Rings on Key Milestone Events */}
-              {ptsPerp.map((p, idx) => {
-                // Key inflection points: Jan 26 (idx 4 video embed) and Feb 14 (idx 7 collapse)
-                const isMilestone = idx === 4 || idx === 7;
-                if (!isMilestone || !activeSeries.perp) return null;
-
-                return (
-                  <g key={`pulse-${idx}`}>
-                    <circle
-                      cx={p.x}
-                      cy={p.y}
-                      r="12"
-                      fill="none"
-                      stroke="#3ee6aa"
-                      className="chart-pulse-ring"
-                    />
-                  </g>
-                );
-              })}
 
               {/* Vertical Scrubber Crosshair Line on Hover */}
               {activeHoverPoint && (
@@ -383,88 +388,93 @@ export default function AnalyticsView({
                     y1={padding.top}
                     x2={activeHoverPoint.x}
                     y2={padding.top + plotHeight}
-                    stroke="rgba(62, 230, 170, 0.65)"
+                    stroke="rgba(255, 255, 255, 0.25)"
                     strokeWidth="1.5"
-                    strokeDasharray="3 3"
+                    strokeDasharray="4 4"
                   />
                 </g>
               )}
 
-              {/* X Date Labels & Interactive Pins */}
+              {/* X Date Labels (5 to 6 labels) & Interactive Pins (All points) */}
               {ptsPerp.map((p, idx) => {
                 const isSelected = idx === selectedPinIndex;
                 const isHovered = idx === hoveredIndex;
                 const dateStr = p.evt.date ? p.evt.date.substring(5) : '';
+                const showLabel = shouldShowDateLabel(idx, ptsPerp.length);
 
                 return (
                   <g key={idx} className="chart-point-group">
-                    {/* Date label */}
-                    <text
-                      x={p.x}
-                      y={height - 12}
-                      fill={isSelected || isHovered ? '#3ee6aa' : '#a1a1aa'}
-                      fontSize="10"
-                      fontWeight={isSelected || isHovered ? '700' : '400'}
-                      fontFamily="var(--font-mono)"
-                      textAnchor="middle"
-                    >
-                      {dateStr}
-                    </text>
+                    {/* Date label: only 5-6 points, 12px high contrast font */}
+                    {showLabel && (
+                      <text
+                        x={p.x}
+                        y={height - 14}
+                        fill={isSelected || isHovered ? '#f4f4f5' : '#a1a1aa'}
+                        fontSize="12"
+                        fontWeight={isSelected || isHovered ? '600' : '400'}
+                        fontFamily="var(--font-sans)"
+                        textAnchor="middle"
+                      >
+                        {dateStr}
+                      </text>
+                    )}
 
-                    {/* Circular Interactive Pin */}
-                    <circle
-                      cx={p.x}
-                      cy={p.y}
-                      r={isSelected ? 8 : isHovered ? 6.5 : 4.5}
-                      fill={isSelected ? '#ffffff' : isHovered ? '#3ee6aa' : '#10b981'}
-                      stroke={isSelected ? '#3ee6aa' : '#0e0f13'}
-                      strokeWidth={isSelected ? '3' : '2'}
-                      style={{
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease',
-                        filter: isSelected
-                          ? 'drop-shadow(0 0 10px rgba(62, 230, 170, 0.9))'
-                          : isHovered
-                            ? 'drop-shadow(0 0 8px rgba(62, 230, 170, 0.6))'
-                            : 'none'
-                      }}
-                      onClick={() => setSelectedPinIndex(idx)}
-                    />
-
-                    {/* Secondary Series Points */}
+                    {/* Secondary Series Points: ChatGPT (White) */}
                     {activeSeries.gpt && ptsGpt[idx] && (
                       <circle
                         cx={ptsGpt[idx].x}
                         cy={ptsGpt[idx].y}
-                        r={isHovered ? 5 : 3}
-                        fill="#60a5fa"
-                        stroke="#0e0f13"
-                        strokeWidth="1.5"
+                        r={isHovered ? 4 : 2.5}
+                        fill="#ffffff"
+                        stroke="#08090c"
+                        strokeWidth="1"
                       />
                     )}
 
+                    {/* Secondary Series Points: Gemini / Google (Signature Google Colors) */}
                     {activeSeries.google && ptsGoogle[idx] && (
                       <circle
                         cx={ptsGoogle[idx].x}
                         cy={ptsGoogle[idx].y}
-                        r={isHovered ? 5 : 3}
-                        fill="#f59e0b"
-                        stroke="#0e0f13"
-                        strokeWidth="1.5"
+                        r={isHovered ? 4 : 2.5}
+                        fill={googleColors[idx % googleColors.length]}
+                        stroke="#08090c"
+                        strokeWidth="1"
                       />
                     )}
+
+                    {/* Primary Interactive Pin: Perplexity (Blue) */}
+                    <circle
+                      cx={p.x}
+                      cy={p.y}
+                      r={isSelected ? 6 : isHovered ? 5 : 3.5}
+                      fill={isSelected ? '#ffffff' : '#38bdf8'}
+                      stroke={isSelected ? '#38bdf8' : '#08090c'}
+                      strokeWidth={isSelected ? '2.5' : '1.5'}
+                      tabIndex={0}
+                      role="button"
+                      aria-label={`Select event ${p.evt.week || ''} (${p.evt.date}): ${p.evt.title}`}
+                      style={{ cursor: 'pointer', outline: 'none' }}
+                      onClick={() => setSelectedPinIndex(idx)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setSelectedPinIndex(idx);
+                        }
+                      }}
+                    />
                   </g>
                 );
               })}
             </svg>
 
-            {/* Floating Dynamic Tooltip tracking the Hovered Point */}
+            {/* Clean Tooltip Card tracking the Hovered Point */}
             {activeHoverPoint && (
               <div
                 className="dynamic-chart-tooltip"
                 style={{
                   left: `${(activeHoverPoint.x / width) * 100}%`,
-                  top: `${Math.max(10, (activeHoverPoint.y / height) * 100 - 45)}%`
+                  top: `${Math.max(8, (activeHoverPoint.y / height) * 100 - 45)}%`
                 }}
               >
                 <div className="tooltip-header">
@@ -474,19 +484,19 @@ export default function AnalyticsView({
                 <div className="tooltip-title">{activeHoverPoint.evt.title}</div>
                 <div className="tooltip-metrics">
                   <div className="metric-row">
-                    <span className="dot perp"></span>
+                    <span className="tooltip-swatch swatch-perp"></span>
                     <span className="label">Perplexity:</span>
-                    <strong className="val">{activeHoverPoint.evt.citation_metrics?.perplexity_citation_rate}%</strong>
+                    <span className="val">{activeHoverPoint.evt.citation_metrics?.perplexity_citation_rate}%</span>
                   </div>
                   <div className="metric-row">
-                    <span className="dot gpt"></span>
+                    <span className="tooltip-swatch swatch-gpt"></span>
                     <span className="label">ChatGPT Search:</span>
-                    <strong className="val">{activeHoverPoint.evt.citation_metrics?.chatgpt_search_visibility}%</strong>
+                    <span className="val">{activeHoverPoint.evt.citation_metrics?.chatgpt_search_visibility}%</span>
                   </div>
                   <div className="metric-row">
-                    <span className="dot google"></span>
-                    <span className="label">Google Rank:</span>
-                    <strong className="val">#{activeHoverPoint.evt.citation_metrics?.google_rank}</strong>
+                    <span className="tooltip-swatch swatch-google"></span>
+                    <span className="label">Gemini / Google:</span>
+                    <span className="val">#{activeHoverPoint.evt.citation_metrics?.google_rank}</span>
                   </div>
                 </div>
                 <div className="tooltip-hint">Click point to view event details</div>
@@ -494,45 +504,43 @@ export default function AnalyticsView({
             )}
           </div>
 
-          {/* Event Card for Selected Pin */}
+          {/* Section 6: Event Detail Card */}
           {selectedEvent && (
-            <div className="selected-pin-summary" id="selectedPinSummary">
-              <div className="pin-summary-header">
-                <span className="pin-badge" id="pinBadge">
-                  {selectedEvent.week ? selectedEvent.week.toUpperCase() : 'EVENT'} • {selectedEvent.event_type}
-                </span>
-                <strong id="pinTitle">{selectedEvent.title}</strong>
-                <span className="pin-date" id="pinDate">{selectedEvent.date}</span>
+            <div className="event-detail-card" id="selectedPinSummary">
+              <div className="event-meta-row">
+                <span className="event-week-label">{selectedEvent.week || 'Week 6'}</span>
+                <span className="event-date" id="pinDate">{selectedEvent.date}</span>
               </div>
-              <p className="pin-details" id="pinDetails">
-                {selectedEvent.details} (Significance: {selectedEvent.significance})
+              <h4 className="event-title" id="pinTitle">{selectedEvent.title}</h4>
+              <p className="event-summary-text" id="pinDetails">
+                {selectedEvent.details}
               </p>
-              <div className="pin-actions">
+              {selectedEvent.significance && (
+                <div className="event-impact-line">
+                  <span className="impact-label">Impact: </span>
+                  {renderImpactContent(selectedEvent)}
+                </div>
+              )}
+              <div className="event-actions">
                 <button
-                  className="btn-ask-copilot"
+                  type="button"
+                  className="btn-secondary-outline"
                   id="btnAskAboutPin"
                   onClick={() => handleSeeReasonClick(
                     `Explain why the event on ${selectedEvent.date} ('${selectedEvent.title}') impacted our AI search citations and how it compared against Jira.`
                   )}
                 >
-                  <span>⚡ See Reason for This Event in Chat</span>
-                  <svg className="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                    <polyline points="12 5 19 12 12 19" />
-                  </svg>
+                  See Reason for This Event in Chat
                 </button>
               </div>
             </div>
           )}
         </div>
 
-        {/* Causal Anomaly Detection Hub (No static reasoning text - directs to AI Agent) */}
+        {/* Section 7: Causal Anomaly Action Hub */}
         <div className="anomaly-action-card">
           <div className="anomaly-card-left">
-            <div className="anomaly-badge">
-              <span className="anomaly-pulse-dot"></span>
-              <span>HINDSIGHT CAUSAL ANOMALY DETECTED</span>
-            </div>
+            <span className="anomaly-meta-label">Causal Anomaly Diagnostic</span>
             <h3 className="anomaly-title">Mid-February AI Citation Collapse (-70%)</h3>
             <p className="anomaly-desc">
               Between Jan 26 and Feb 14, Linear's Perplexity citations dropped from 88% down to 18%, while Atlassian Jira surged to 74%. Memory bank <code>linear-seo-intelligence</code> has retained the exact code commits, competitor moves, and algorithmic re-indexing logs explaining why this happened.
@@ -540,24 +548,20 @@ export default function AnalyticsView({
           </div>
           <div className="anomaly-card-right">
             <button
-              className="btn-see-reason"
+              type="button"
+              className="btn-secondary-outline"
               id="btnSeeReasonInChat"
               onClick={() => handleSeeReasonClick(
                 "Diagnose the mid-February citation collapse: Why did our Perplexity citation rate drop from 88% to 18.4%, and what exact content difference caused Atlassian Jira to capture our search traffic?"
               )}
             >
-              <span className="btn-sparkle">✦</span>
-              <span>See the Reason in AI Agent</span>
-              <svg className="arrow-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <line x1="5" y1="12" x2="19" y2="12" />
-                <polyline points="12 5 19 12 12 19" />
-              </svg>
+              See Reason in AI Agent
             </button>
             <span className="btn-subtext">Navigates to Copilot with pre-configured causal query</span>
           </div>
         </div>
 
       </div>
-    </section>
+    </div>
   );
 }

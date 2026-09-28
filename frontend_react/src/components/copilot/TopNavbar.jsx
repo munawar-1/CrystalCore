@@ -54,33 +54,11 @@ export default function TopNavbar({
           id="btnSwitchRole"
           title="Click to Switch Role (Coder vs Marketing Team)"
           onClick={onOpenAuth}
-          style={{
-            background: isCoder ? 'rgba(62, 230, 170, 0.12)' : 'rgba(94, 106, 210, 0.12)',
-            border: isCoder ? '1px solid rgba(62, 230, 170, 0.35)' : '1px solid rgba(94, 106, 210, 0.35)',
-            cursor: 'pointer',
-            gap: '0.45rem'
-          }}
         >
-          <span
-            style={{
-              fontSize: '11px',
-              fontFamily: 'var(--font-mono)',
-              fontWeight: 800,
-              color: isCoder ? 'var(--mint-primary)' : 'var(--accent-linear)'
-            }}
-          >
-            {isCoder ? '</> Coder' : '📢 Marketing'}
+          <span className="role-auth-text">
+            {isCoder ? 'Coder' : 'Marketing'}
           </span>
-          <span
-            style={{
-              fontSize: '10px',
-              background: isCoder ? 'var(--mint-primary)' : 'var(--accent-linear)',
-              color: isCoder ? '#060709' : '#ffffff',
-              padding: '1px 6px',
-              borderRadius: '999px',
-              fontWeight: 800
-            }}
-          >
+          <span className="role-switch-tag">
             Switch
           </span>
         </button>

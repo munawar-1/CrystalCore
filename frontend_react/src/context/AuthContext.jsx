@@ -52,7 +52,7 @@ const AuthContext = createContext();
 export function AuthProvider({ children }) {
   const [currentRole, setCurrentRole] = useState(() => {
     const saved = localStorage.getItem('crystalcore_auth_role');
-    return saved === 'marketing' ? 'marketing' : 'coder';
+    return saved === 'coder' ? 'coder' : 'marketing';
   });
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);

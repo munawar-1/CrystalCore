@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/copilot/Sidebar';
 import TopNavbar from '../components/copilot/TopNavbar';
 import ChatView from '../components/copilot/ChatView';
-import AnalyticsView from '../components/copilot/AnalyticsView';
 import FeatureModal from '../components/copilot/FeatureModal';
 import AuthModal from '../components/copilot/AuthModal';
 import CoderMemoryView from '../components/copilot/CoderMemoryView';
@@ -67,11 +66,15 @@ export default function CopilotPage({ onNavigate, initialView }) {
   const { user, isCoder, isMarketing, isAuthModalOpen, openAuthModal, closeAuthModal } = useAuth();
   const { isLight, isDark } = useTheme();
 
-  // If initialView not specified in URL, set default based on role
-  const defaultRoleView = isCoder ? 'coder_memory' : 'marketing_strategy';
-  const [activeView, setActiveView] = useState(initialView || defaultRoleView);
+  // Check URL params for deep linking to view or chat
+  const searchParams = new URLSearchParams(window.location.search);
+  const deepChatParam = searchParams.get('chat') || searchParams.get('chatId');
+  const defaultRoleView = deepChatParam ? 'chat' : (isCoder ? 'coder_memory' : 'marketing_strategy');
+  const [activeView, setActiveView] = useState(initialView || (deepChatParam ? 'chat' : defaultRoleView));
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [currentChatId, setCurrentChatId] = useState('chat-1');
+  const [currentChatId, setCurrentChatId] = useState(
+    deepChatParam && INITIAL_SESSIONS[deepChatParam] ? deepChatParam : 'chat-1'
+  );
   const [chatSessions, setChatSessions] = useState(INITIAL_SESSIONS);
   const [isThinking, setIsThinking] = useState(false);
   const [timelineData, setTimelineData] = useState(null);
@@ -103,10 +106,16 @@ export default function CopilotPage({ onNavigate, initialView }) {
     loadTimeline();
   }, []);
 
-  // Update view if initialView changes
+  // Update view if initialView changes or deep link in URL
   useEffect(() => {
     if (initialView) {
       setActiveView(initialView);
+    }
+    const params = new URLSearchParams(window.location.search);
+    const chatP = params.get('chat') || params.get('chatId');
+    if (chatP && chatSessions[chatP]) {
+      setCurrentChatId(chatP);
+      setActiveView('chat');
     }
   }, [initialView]);
 
@@ -116,11 +125,22 @@ export default function CopilotPage({ onNavigate, initialView }) {
 
   const handleSwitchView = (view) => {
     setActiveView(view);
+    const url = new URL(window.location);
+    url.searchParams.set('view', view);
+    if (view !== 'chat') {
+      url.searchParams.delete('chat');
+      url.searchParams.delete('chatId');
+    }
+    window.history.replaceState({}, '', url.pathname + url.search);
   };
 
   const handleSelectChat = (id) => {
     setCurrentChatId(id);
     setActiveView('chat');
+    const url = new URL(window.location);
+    url.searchParams.set('view', 'chat');
+    url.searchParams.set('chat', id);
+    window.history.replaceState({}, '', url.pathname + url.search);
   };
 
   const handleNewChat = () => {
@@ -129,11 +149,47 @@ export default function CopilotPage({ onNavigate, initialView }) {
       ...prev,
       [newId]: {
         title: "New Investigation",
-        messages: []
+        messages: [],
+        updatedAt: new Date().toISOString()
       }
     }));
     setCurrentChatId(newId);
     setActiveView('chat');
+    const url = new URL(window.location);
+    url.searchParams.set('view', 'chat');
+    url.searchParams.set('chat', newId);
+    window.history.replaceState({}, '', url.pathname + url.search);
+  };
+
+  const handleRenameChat = (id, newTitle) => {
+    if (!newTitle.trim()) return;
+    setChatSessions((prev) => {
+      if (!prev[id]) return prev;
+      return {
+        ...prev,
+        [id]: {
+          ...prev[id],
+          title: newTitle.trim(),
+          updatedAt: new Date().toISOString()
+        }
+      };
+    });
+  };
+
+  const handleDeleteChat = (id) => {
+    setChatSessions((prev) => {
+      const copy = { ...prev };
+      delete copy[id];
+      return copy;
+    });
+    if (currentChatId === id) {
+      const remaining = Object.keys(chatSessions).filter((k) => k !== id);
+      if (remaining.length > 0) {
+        setCurrentChatId(remaining[0]);
+      } else {
+        handleNewChat();
+      }
+    }
   };
 
   const handleSendMessage = async (text) => {
@@ -289,6 +345,8 @@ export default function CopilotPage({ onNavigate, initialView }) {
           currentChatId={currentChatId}
           onSelectChat={handleSelectChat}
           onNewChat={handleNewChat}
+          onRenameChat={handleRenameChat}
+          onDeleteChat={handleDeleteChat}
           onNavigateLanding={() => onNavigate ? onNavigate('/') : window.location.href = '/'}
           showToast={showToast}
           onOpenAuth={openAuthModal}
@@ -311,18 +369,12 @@ export default function CopilotPage({ onNavigate, initialView }) {
               onNavigateToChatWithPrompt={handleNavigateToChatWithPrompt}
               showToast={showToast}
             />
-          ) : activeView === 'marketing_strategy' ? (
+          ) : (activeView === 'marketing_strategy' || activeView === 'analytics') ? (
             <MarketingStrategyView
               timelineData={timelineData}
               onAskAboutPin={handleAskAboutPin}
               onNavigateToChatWithPrompt={handleNavigateToChatWithPrompt}
               showToast={showToast}
-            />
-          ) : activeView === 'analytics' ? (
-            <AnalyticsView
-              timelineData={timelineData}
-              onAskAboutPin={handleAskAboutPin}
-              onNavigateToChatWithPrompt={handleNavigateToChatWithPrompt}
             />
           ) : (
             <ChatView
