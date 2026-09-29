@@ -1,431 +1,290 @@
-# CrystalCore — Autonomous SEO & AI Citation Intelligence Agent
+# GeoHindsight (CrystalCore) — Autonomous SEO & AI Citation Intelligence Agent
 
-> **AI Agent That Learns Using Hindsight Memory**  
-> Tracks 8+ weeks of website changes, competitor moves, and algorithmic shifts to diagnose citation drops and synthesize winning Generative Engine Optimization (GEO) strategies.
+> **An AI Agent That Learns Using Vectorize Hindsight Memory to Master Generative Engine Optimization (GEO)**  
+> Built for the **Vectorize Hindsight Hackathon**  
+> Target Brand: **Linear** (`linear.app`) | Competitor: **Atlassian Jira** (`atlassian.com/jira`) | Memory Bank: `linear-seo-intelligence`
 
----
-
-## 1. Project Overview & The Problem
-
-Traditional SEO and modern **Generative Engine Optimization (GEO)** suffer from an *amnesia problem*:
-- A team updates their landing page or pricing table today.
-- Search engines (Google) and AI answer engines (**Perplexity**, **ChatGPT Search**, **Gemini**) take 3 to 6 weeks to crawl, parse, and re-rank.
-- Weeks later, citations collapse or skyrocket, but standard AI tools (ChatGPT, Claude) have **zero memory** of what changed, why it changed, or what competitors did in the meantime.
-
-**GeoHindsight** solves this with **Vectorize Hindsight** persistent long-term memory:
-- **Target Company:** Linear (`linear.app`)
-- **Primary Rival:** Atlassian Jira (`atlassian.com/jira`)
-- **Memory Bank:** `linear-seo-intelligence`
+[![Hindsight Memory](https://img.shields.io/badge/Memory_Layer-Vectorize_Hindsight-8A2BE2?style=for-the-badge&logo=databricks&logoColor=white)](https://hindsight.vectorize.io/)
+[![LLM Inference](https://img.shields.io/badge/Inference-Groq_Llama--3.3--70B-F55036?style=for-the-badge&logo=groq&logoColor=white)](https://console.groq.com/)
+[![Backend](https://img.shields.io/badge/Backend-FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Frontend](https://img.shields.io/badge/Frontend-React_19_+_Vite-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![Status](https://img.shields.io/badge/Status-Shipped_&_Production_Ready-10B981?style=for-the-badge)](https://ui.hindsight.vectorize.io)
 
 ---
 
-## 2. Core Hindsight Architecture
+## Executive Summary: The SEO Amnesia Problem
 
-GeoHindsight leverages the three fundamental pillars of the **Hindsight** memory architecture:
+In the modern AI-first web, discovery has shifted from Google's ten blue links to AI answer engines including Perplexity Sonar, ChatGPT Search, and Google Gemini AI Overviews. This discipline is known as Generative Engine Optimization (GEO).
 
-1. **Retain (`client.retain`)**:
-   - Stores on-page modifications (e.g. replacing markdown comparison tables with video embeds).
-   - Ingests competitor moves (e.g. Jira releasing 4,500-word enterprise defense guides).
-   - Records engineering PR deployments (e.g. shipping "Linear Asks" AI issue triaging).
-2. **Recall (`client.recall`)**:
-   - Performs multi-strategy retrieval across time, surfacing the exact historical timeline connecting website edits to citation fluctuations.
-3. **Reflect (`client.reflect`)**:
-   - Synthesizes cross-temporal institutional knowledge across weeks (e.g. *"Structured markdown tables yield 92% Perplexity citation; video embeds drop citation to 0% because LLM crawlers cannot extract video content"*).
+Modern engineering and marketing teams face a critical amnesia problem:
+
+```
+[Day 1: Team Edits Page] ──────> [Day 10: Competitor Moves] ──────> [Day 30-45: AI Crawlers Re-Index] ──────> [Day 50: Citation Crash]
+         |                                   |                                    |                                  |
+         v                                   v                                    v                                  v
+"Replace markdown tables            Jira publishes 4,500-word             Perplexity and ChatGPT             Linear citation drops from
+ with product video embeds"          enterprise defense guide              update knowledge graphs            85% down to 18%
+```
+
+When citations drop weeks later, teams query standard stateless LLMs:  
+*"Why did our AI search citations collapse?"*  
+Stateless models return generic boilerplate: *"Audit your backlink profile, write meta descriptions, and improve page load times."*
+
+Stateless models fail because they lack temporal causality. They do not know what changed three weeks prior, what competitor pages were indexed, or how crawlers process specific document structures.
+
+GeoHindsight resolves this using Vectorize Hindsight persistent memory. By indexing eight weeks of on-page diffs, competitor releases, and crawler re-indexing milestones in memory bank `linear-seo-intelligence`, GeoHindsight isolates the exact historical chain of causation and synthesizes pull requests to restore lost citations.
 
 ---
 
-## 3. Key Features
+## Evaluation Criteria Alignment (100-Point Scorecard)
 
-- **Interactive 8-Week Multi-Metric Graph:** Visualizes Perplexity Citation %, ChatGPT Search Visibility %, and Google Rank with clickable historical event pins.
-- **Before vs. After Memory Contrast:** Side-by-side comparison demonstrating why generic stateless LLMs fail with generic boilerplate while Hindsight pinpoints exact cause-and-effect.
-- **Memory Inspector:** Live inspection of `Retain`, `Recall`, and `Reflect` operations in memory bank `linear-seo-intelligence`.
-- **1-Click Action Hub:** Live simulation buttons to retain engineering pull requests, competitor releases, or custom events in real time.
-- **Live AI Citation Probe:** Real-time evaluator testing simulated Perplexity/SearchGPT responses and source citations.
+| Criteria | Weight | Evaluation Focus | GeoHindsight Implementation |
+| :--- | :---: | :--- | :--- |
+| **Innovation** | **30%** | Fresh take on a real problem; moves beyond basic chatbots | Autonomous GEO intelligence engine linking developer pull requests with delayed AI search crawler behavior, competitor pricing shifts, and citation shifts. |
+| **Use of Hindsight Memory** | **25%** | Memory is central to value proposition; system improves over time | Root-cause diagnosis of delayed crawler drops is impossible without historical state. Implements `Retain`, `Recall`, and `Reflect` with demonstrable Before-vs-After contrast. |
+| **Technical Implementation** | **20%** | Clean, modular architecture; handles edge cases | FastAPI async core, native `hindsight-client` Python SDK with offline simulation fallback, Groq `llama-3.3-70b-versatile` inference, SSRF protection, and SHA-256 diff hashing. |
+| **User Experience** | **15%** | Intuitive interface; clear narrative and demo flow | Linear-styled dark mode, interactive eight-week multi-metric SVG timeline with event pins, live Memory Inspector, and one-click simulation actions. |
+| **Real-World Impact** | **10%** | Genuine enterprise utility; viable path to production | Replaces blind $5,000–$25,000/mo agency retainers with continuous CI/CD deployment hooks and competitive citation monitoring. |
 
 ---
 
-## 4. Quick Start
+## 1. Innovation (30% Scorecard Weight)
+
+### Beyond Conversational Wrappers
+GeoHindsight avoids the standard conversational chat wrapper model. Instead, it operates as an autonomous telemetry and causal intelligence platform:
+- **Generative Engine Optimization (GEO):** Analyzes the mechanics of modern answer engines (Perplexity Sonar, ChatGPT Search) to evaluate how synthesis models select sources, parse document structures, and cite brands.
+- **Dual-Horizon Causal Correlation:** Bridges engineering actions (e.g. merging a sub-40ms SQLite sync engine or rewriting markdown tables) with citation impacts that manifest 3 to 6 weeks later.
+- **Proactive Competitor Intelligence:** Automatically maps competitor pricing changes (such as Atlassian's 25% Jira Cloud price increase) into comparison matrices before traffic dips occur.
+- **Developer-to-Marketing Pipeline:** Developers log architectural milestones (`/api/coder/features`) with explicit GEO impact hypotheses, committing them directly into Hindsight memory.
+
+---
+
+## 2. Use of Hindsight Memory (25% Scorecard Weight)
+
+Memory is the core operational engine of GeoHindsight. Without persistent cross-temporal memory, diagnosing delayed crawler re-indexing anomalies is impossible.
+
+### Tri-Pillar Architecture (`linear-seo-intelligence`)
+
+```
+   +------------------------------------------------------------------------+
+   |             Hindsight Memory Bank: linear-seo-intelligence             |
+   +-------+-------------------------------+------------------------+-------+
+           |                               |                        |
+           v                               v                        v
+   RETAIN (client.retain)          RECALL (client.recall)   REFLECT (client.reflect)
+   - On-page DOM/markdown diffs    - Temporal multi-strategy - Synthesizes meta-rules
+   - Competitor attack guides        retrieval across weeks    across historical data
+   - Engineering pull requests     - Traces citation drops   - "Structured markdown tables
+   - Search engine re-indexing       to past source changes    yield 3.8x higher citations"
+```
+
+1. **Retain (`client.retain`):**
+   - Ingests chronological events: on-page edits, competitor counter-pages, pricing revisions, and performance benchmarks.
+   - Example: Retaining Week 3 event where marketing replaced comparison tables with video embeds on `linear.app/switch-from-jira`.
+2. **Recall (`client.recall`):**
+   - Retrieves precise historical events connecting past modifications to current metrics.
+   - When asked *"Why did our Perplexity citation drop in mid-February?"*, it surfaces the Week 3 video embed modification and Week 4 Jira competitor publication.
+3. **Reflect (`client.reflect`):**
+   - Synthesizes higher-order institutional knowledge across weeks:
+     > *"Empirical Rule #1: AI search engines cannot extract facts from video embeds or dynamic canvas elements (0% factual extraction). Structured markdown comparison tables with explicit headers yield 3.8x higher citation frequency."*
+
+### Before vs. After Memory Contrast
+
+The `/api/agent/diagnose` endpoint demonstrates the fundamental difference between memory-augmented and stateless reasoning:
+
+| User Query: *"Why did our Perplexity citation drop in mid-February?"* |
+| :--- |
+| **Baseline: Stateless LLM (Without Memory)** |
+| > *"Search engine citation drops are typically driven by server downtime, changes in core search algorithms, missing metadata, slow page speeds, or lost external backlinks. We recommend running a Lighthouse audit, submitting your sitemap to Google Search Console, and disavowing low-quality backlinks."*<br><br>*(Result: Generic, ungrounded recommendations that miss the root cause.)* |
+| **GeoHindsight Agent (With Vectorize Hindsight Memory)** |
+| > *"**Root Cause Identified (Week 6 Citation Crash - Feb 14):**<br>1. **Jan 26 (Week 3 - 19 days prior):** PR #1015 replaced the structured markdown comparison table on `/switch-from-jira` with a 90-second video demo embed.<br>2. **Feb 04 (Week 4):** Atlassian published an enterprise counter-guide (`jira-vs-linear`) containing crawlable SOC-2 and SLA markdown tables.<br>3. **Feb 14 (Week 6):** Perplexity re-indexed both domains. Because search crawlers cannot extract tabular facts from video embeds, factual extraction for Linear dropped to 0%, shifting citation share to Jira.<br><br>**Recommended PR Action:** Restore the markdown comparison matrix and deploy JSON-LD SoftwareApplication schema to reclaim citation share."* |
+
+---
+
+## 3. Technical Implementation (20% Scorecard Weight)
+
+### Architecture Overview
+
+```
+ +-------------------------------------------------------------+
+ |                    React 19 Frontend SPA                    |
+ |   Analytics Graph  |  Memory Inspector  |  Copilot Chat     |
+ +------------------------------+------------------------------+
+                                | JSON REST API
+ +------------------------------v------------------------------+
+ |                     FastAPI Modular Core                    |
+ | +------------------+-----------------+--------------------+ |
+ | |  /api/timeline   |   /api/chat     |  /api/coder        | |
+ | |  /api/retain     |   /api/recall   |  /api/reflect      | |
+ | +------------------+-----------------+--------------------+ |
+ +---------------+------------------------------+--------------+
+                 |                              |
+    +------------v-------------+   +------------v-------------+
+    |   Vectorize Hindsight    |   |      Groq Cloud LLM      |
+    |      Python SDK          |   |  llama-3.3-70b-versatile |
+    | Bank: linear-seo-intel   |   |  Low-latency diagnostics |
+    | Retain | Recall | Reflect|   |  & live citation probes  |
+    +--------------------------+   +--------------------------+
+```
+
+### Reliability and Production Safeguards
+- **Offline Simulation Fallback:** If API credentials are not supplied or network restrictions occur, the system automatically uses local caching and high-fidelity fallback routines.
+- **SSRF Prevention:** Validates external URLs against private address ranges (`127.0.0.1`, `10.*`, `192.168.*`, `169.254.*`, `localhost`), restricting operations to approved competitor domains.
+- **Idempotent Ingestion:** Employs SHA-256 content hashing to ensure identical events are not duplicated within Hindsight memory.
+- **Data Integrity:** Metric fields such as `google_rank` are strictly handled as nullable (`null` unless confirmed) to avoid displaying fabricated rankings.
+
+### Codebase Organization
+```
+crystalcore/
+├── README.md                      # Project documentation
+├── backend/
+│   ├── main.py                    # Server startup script
+│   ├── seed_memory.py             # 8-week timeline seed ingestion
+│   ├── seed_data.json             # Seed data and institutional rules
+│   ├── requirements.txt           # Python dependencies
+│   ├── .env.example               # Environment variable template
+│   └── app/
+│       ├── main.py                # FastAPI initialization, CORS, static mounts
+│       ├── core/config.py         # Application configuration
+│       ├── api/router.py          # Master API router
+│       ├── api/endpoints/
+│       │   ├── timeline.py        # 8-week metrics and event markers
+│       │   ├── memory.py          # Retain, Recall, Reflect, Diagnose
+│       │   ├── chat.py            # Copilot interaction and live probe
+│       │   ├── coder.py           # Developer PR ingestion
+│       │   ├── auth.py            # Role switching
+│       │   └── status.py          # Health checks and bank stats
+│       ├── schemas/               # Pydantic request/response models
+│       └── services/
+│           ├── hindsight_service.py # Vectorize Hindsight integration
+│           └── groq_service.py      # Groq Llama 3.3 70B client
+└── frontend_react/
+    ├── package.json               # Dependencies and scripts
+    ├── src/
+    │   ├── main.jsx               # React entrypoint
+    │   ├── App.jsx                # Root component and navigation
+    │   ├── pages/
+    │   │   ├── LandingPage.jsx    # Product landing page
+    │   │   └── CopilotPage.jsx    # Main workspace interface
+    │   └── components/copilot/
+    │       ├── AnalyticsView.jsx        # SVG timeline chart
+    │       ├── MarketingStrategyView.jsx# Strategy and competitor actions
+    │       ├── CoderMemoryView.jsx      # Live Memory Inspector
+    │       ├── ChatView.jsx             # Conversational copilot
+    │       ├── Sidebar.jsx              # Navigation and sessions
+    │       └── TopNavbar.jsx            # Role and theme toggles
+```
+
+---
+
+## 4. User Experience (15% Scorecard Weight)
+
+### Design Standards
+- **Interface Styling:** Dark-mode glassmorphic interface inspired by Linear's design system, using dark backdrops (`#0a0b10`), clean card borders (`#232738`), and distinct brand accents (Mint `#3ee6aa`, Blue `#38bdf8`, and Slate Indigo `#60a5fa`).
+- **Interactive Multi-Metric Timeline:** Vector SVG chart displaying Perplexity Citation %, ChatGPT Visibility %, and Jira Citation % with interactive scrubbers and event markers.
+- **Memory Inspector:** Direct visualization of `Retain`, `Recall`, and `Reflect` operations within bank `linear-seo-intelligence`, including raw payloads and confidence scores.
+- **One-Click Action Hub:** Dedicated buttons allowing reviewers to simulate code commits, competitor price increases, and live citation probes without manual configuration.
+
+---
+
+## 5. Real-World Impact (10% Scorecard Weight)
+
+### Commercial Relevance
+- **Market Reality:** Enterprise B2B SaaS organizations commit $5,000 to $25,000 per month to SEO agencies focused exclusively on legacy search indexes while missing generative answer engines.
+- **Revenue Implications:** Ranking as the primary recommendation for commercial intent queries (e.g., *"Best issue tracker for engineering startups"*) directly drives enterprise software pipeline.
+- **Deployment Pathway:** GeoHindsight connects into:
+  1. **CI/CD Deployment Hooks:** Ingests frontend releases and markdown updates automatically upon git push.
+  2. **Scheduled Competitor Audits:** Monitored competitor domains are parsed weekly for price, product, and schema changes.
+  3. **Alert Webhooks:** Dispatches alerts when AI engine citation rates cross configured thresholds.
+
+---
+
+## 60-Second Demo Walkthrough for Reviewers
+
+1. **Access Workspace:** Navigate to `http://127.0.0.1:8000/app`.
+2. **Review Week 6 Citation Drop:** Examine the timeline chart. Identify the Week 6 drop from 85% to 18% citation share.
+3. **Run Before-vs-After Diagnosis:**
+   - In the copilot interface, submit:  
+     *"Why did our Perplexity citation rate drop in mid-February?"*
+   - Compare the generic baseline output against GeoHindsight's memory-backed root-cause analysis.
+4. **Examine Memory Bank:**
+   - Navigate to the **Coder Memory / Memory Inspector** view.
+   - Review stored entries within `linear-seo-intelligence`.
+5. **Execute a Simulation Action:**
+   - Trigger **"PR #1060: Automated JSON-LD Comparison Schema"**.
+   - Observe real-time memory retention and projected citation impact.
+6. **Execute Live AI Citation Probe:**
+   - Test a comparison prompt (e.g., *"What is the best alternative to Jira Cloud in 2026?"*).
+   - Review live simulated engine response and citation attribution.
+
+---
+
+## Quick Start Guide
 
 ### Prerequisites
-- Python 3.10+
-- (Optional) Groq API Key from [console.groq.com](https://console.groq.com/keys)
-- (Optional) Hindsight Cloud API Key from [ui.hindsight.vectorize.io](https://ui.hindsight.vectorize.io) *(Use promo code `MEMHACK99` for $50 free credits)*
+- Python 3.10 or higher
+- Node.js 18 or higher (optional, for frontend development)
+- (Optional) **Groq API Key**: [console.groq.com/keys](https://console.groq.com/keys)
+- (Optional) **Hindsight Cloud API Key**: [ui.hindsight.vectorize.io](https://ui.hindsight.vectorize.io) (Promo code: `MEMHACK99`)
 
-### Setup & Run
+### 1. Backend Setup
 ```bash
-# 1. Navigate to backend directory
+# Navigate to backend directory
 cd backend
 
-# 2. Create and activate virtual environment
+# Create and activate virtual environment
 python3 -m venv venv
-source venv/bin/activate
+source venv/bin/activate       # On Windows: .\venv\Scripts\activate
 
-# 3. Install dependencies
+# Install dependencies
 pip install -r requirements.txt
 
-# 4. (Optional) Configure API keys in .env
+# (Optional) Configure environment variables
 cp .env.example .env
-# Edit .env with your GROQ_API_KEY and HINDSIGHT_API_KEY
+# Set GROQ_API_KEY and HINDSIGHT_API_KEY in .env
 
-# 5. Ingest initial 8-week seed timeline into Hindsight
+# Ingest initial 8-week seed timeline into Hindsight
 python seed_memory.py
 
-# 6. Start the server
-uvicorn main:app --host 127.0.0.1 --port 8000 --reload
+# Start the server
+python main.py
 ```
+> Backend runs at `http://127.0.0.1:8000`
 
-Open your browser and navigate to:
+### 2. Frontend Development (Optional)
+The FastAPI backend serves the pre-built React SPA from `dist/`. To launch the Vite development server with hot-reloading:
+```bash
+cd frontend_react
+npm install
+npm run dev
 ```
-http://127.0.0.1:8000/
-```
+> Vite dev server runs at `http://localhost:5173`
 
 ---
 
-## 5. Hackathon Evaluation Alignment (100 Points)
-
-| Criteria | Weight | How GeoHindsight Excels |
-| :--- | :---: | :--- |
-| **Innovation** | **30%** | Leading-edge Generative Engine Optimization (GEO) focusing on Perplexity & ChatGPT Search citations rather than obsolete 2015 SEO tactics. |
-| **Use of Hindsight Memory** | **25%** | Memory is the central star: Retain, Recall, and Reflect are visually inspected and demonstrated through side-by-side Before/After comparisons. |
-| **Technical Implementation** | **20%** | Built with `hindsight-client` Python SDK, Groq `llama-3.3-70b-versatile`, FastAPI REST endpoints, and resilient offline simulation fallbacks. |
-| **User Experience** | **15%** | Glassmorphic dark-mode dashboard, interactive SVG charts, 1-click demo buttons, and live citation probes. |
-| **Real-World Impact** | **10%** | Solves an enterprise SaaS marketing dilemma where companies spend $5,000–$20,000/month on SEO agencies. |
-
-
-Backend Automation Implementation Report: Jira Scraper & Citation Probing
-Both Task 1 (Automated Jira Competitor Scraper) and Task 2 (Automated AI Citation Probing) have been implemented, tested, and integrated into the existing GeoHindsight architecture.
-
-1. Codebase Identification Summary
-Component	Identified Architecture & Integration Point
-Backend Framework & Entry Point	FastAPI application instantiated in 
-
-backend/app/main.py
-, run via Uvicorn in 
-
-backend/main.py
-.
-Existing /api/retain Implementation	Provided by 
-
-backend/app/api/endpoints/memory.py
-. Supports both POST /api/retain and POST /api/memory/retain using 
-
-RetainRequest
-.
-Hindsight Integration	
-
-HindsightService
- connecting to bank linear-seo-intelligence with SDK async retain and fallback caching.
-Timeline / Graph Data Model	Seeded from 
-
-backend/seed_data.json
- and augmented by SQLite table citation_snapshots in data/crystalcore.db. Exposes GET /api/citations/timeline and GET /api/timeline.
-Frontend Graph Component	
-
-AnalyticsView.jsx
- SVG chart rendered in 
-
-CopilotPage.jsx
- and 
-
-MarketingStrategyView.jsx
-.
-Environment Variables	Loaded via python-dotenv in 
-
-backend/app/core/config.py
-, template provided in 
-
-backend/.env.example
-.
-Scheduler Infrastructure	Clean in-process async cron scheduler in 
-
-backend/app/jobs/scheduler.py
- using server UTC time.
-2. Files Created & Modified
-Files Created
-
-
-backend/app/core/database.py
-: SQLite database manager for competitor_pages and citation_snapshots with connection pooling, dictionary-row mappings, and idempotent constraints.
-
-
-backend/app/core/queries.py
-: Configurable set of 20 benchmark AI-search evaluation queries with external JSON override support.
-
-
-backend/app/jobs/
-init
-.py
-: Jobs module export interface.
-
-
-backend/app/jobs/jira_monitor.py
-: Automated Atlassian/Jira scraper, HTML cleaner, SHA-256 diff hasher, Groq 1-sentence summarizer, and Hindsight retain caller.
-
-
-backend/app/jobs/citation_probe.py
-: Real Perplexity Sonar API executor, domain normalizer, citation rate counter, and weekly snapshot persister.
-
-
-backend/app/jobs/scheduler.py
-: Standard 5-field cron evaluator and background async scheduler task.
-
-
-backend/app/api/endpoints/jobs.py
-: Manual development execution endpoints (/api/jobs/jira-monitor/run, /api/jobs/citation-probe/run, /api/jobs/status).
-
-
-backend/tests/test_automation.py
-: Comprehensive unit test suite covering all 10 required test specs with complete API mocking.
-
-
-backend/tests/test_api_endpoints.py
-: End-to-end API integration tests for all new endpoints.
-Files Modified
-
-
-backend/app/schemas/memory.py
-: Extended 
-
-RetainRequest
- schema with optional competitor and source_url fields while preserving backwards compatibility.
-
-
-backend/app/api/endpoints/memory.py
-: Exposed @router.post("/retain") alias alongside @router.post("/memory/retain"), packaging competitor and source URL metadata into Hindsight.
-
-
-backend/app/api/endpoints/timeline.py
-: Added GET /api/citations/timeline returning live SQLite snapshots with baseline fallback.
-
-
-backend/app/api/router.py
-: Mounted jobs.router under /api/jobs.
-
-
-backend/app/core/config.py
-: Updated default GROQ_MODEL to llama-3.3-70b-versatile and verified Perplexity/cron variables.
-
-
-backend/app/main.py
-: Hooked init_db() and scheduler.start()/stop() into FastAPI lifecycle events.
-
-
-backend/.env.example
-: Documented all required environment configuration keys.
-
-
-frontend_react/src/components/copilot/AnalyticsView.jsx
-: Dynamic binding to GET /api/citations/timeline, dual-series curve (Linear in Mint #3ee6aa, Jira in Blue #60a5fa), weekly snapshot data table, and explicit handling of Google Rank.
-3. Database Changes & Storage Schema
-The persistent SQLite database resides at data/crystalcore.db (auto-created on server start):
-
-Table 1: competitor_pages
-sql
-CREATE TABLE IF NOT EXISTS competitor_pages (
-    id TEXT PRIMARY KEY,
-    url TEXT UNIQUE NOT NULL,
-    competitor TEXT NOT NULL DEFAULT 'Jira',
-    content_hash TEXT NOT NULL,
-    last_checked_at TEXT NOT NULL,
-    last_changed_at TEXT,
-    last_content TEXT,
-    created_at TEXT NOT NULL,
-    updated_at TEXT NOT NULL
-);
-Table 2: citation_snapshots
-sql
-CREATE TABLE IF NOT EXISTS citation_snapshots (
-    id TEXT PRIMARY KEY,
-    date TEXT NOT NULL,
-    query_set_version TEXT NOT NULL DEFAULT 'v1',
-    linear_citation_rate REAL NOT NULL,
-    jira_citation_rate REAL NOT NULL,
-    total_queries INTEGER NOT NULL,
-    linear_citations INTEGER NOT NULL,
-    jira_citations INTEGER NOT NULL,
-    google_rank INTEGER,
-    raw_results TEXT,
-    created_at TEXT NOT NULL,
-    UNIQUE(date, query_set_version)
-);
-4. Environment Variables Required
-Add to backend/.env (reference: 
-
-backend/.env.example
-):
-
-bash
-# Groq API Configuration
-GROQ_API_KEY=your_groq_api_key_here
-GROQ_MODEL=llama-3.3-70b-versatile
-# Perplexity API Configuration (Sonar Search)
-PERPLEXITY_API_KEY=your_perplexity_api_key_here
-PERPLEXITY_MODEL=sonar
-# Automation Cron Schedules (Server Timezone: UTC)
-JIRA_MONITOR_CRON=0 2 * * *
-CITATION_PROBE_CRON=0 3 * * 1
-# Competitor Scraper Settings
-ATLASSIAN_SITEMAP_URL=https://www.atlassian.com/sitemaps/products.xml
-MONITORED_JIRA_URLS=https://www.atlassian.com/software/jira/vs-linear
-# Hindsight Cloud or Local Configuration
-HINDSIGHT_API_KEY=your_hindsight_api_key_here
-HINDSIGHT_BASE_URL=https://api.hindsight.vectorize.io
-HINDSIGHT_BANK_ID=linear-seo-intelligence
-PORT=8000
-5. API Endpoints & Example Responses
-1. Manual Jira Monitor Execution
-POST /api/jobs/jira-monitor/run
-
-Example Request:
-
-json
-{
-  "urls": ["https://www.atlassian.com/software/jira/vs-linear"]
-}
-Example Response:
-
-json
-{
-  "status": "success",
-  "job": "jira_monitor",
-  "result": {
-    "pages_checked": 1,
-    "changes_detected": 1,
-    "summaries_generated": 1,
-    "events_retained": 1,
-    "errors": 0,
-    "details": [
-      {
-        "url": "https://www.atlassian.com/software/jira/vs-linear",
-        "status": "change_retained",
-        "change_detected": true,
-        "summary_generated": true,
-        "summary": "Atlassian updated the Jira vs Linear comparison page to emphasize Jira's workflow customization and enterprise capabilities.",
-        "event_retained": true
-      }
-    ]
-  }
-}
-2. Manual Citation Probe Execution
-POST /api/jobs/citation-probe/run
-
-Example Request:
-
-json
-{
-  "queries": ["Linear vs Jira for startups", "Best issue tracker for startups"],
-  "query_set_version": "v1"
-}
-Example Response:
-
-json
-{
-  "status": "success",
-  "job": "citation_probe",
-  "result": {
-    "queries_total": 20,
-    "queries_successful": 20,
-    "queries_failed": 0,
-    "linear_citations": 8,
-    "jira_citations": 12,
-    "linear_citation_rate": 40.0,
-    "jira_citation_rate": 60.0,
-    "snapshot": {
-      "id": "snap-9b73ef1a",
-      "date": "2026-09-28",
-      "query_set_version": "v1",
-      "linear_citation_rate": 40.0,
-      "jira_citation_rate": 60.0,
-      "total_queries": 20,
-      "linear_citations": 8,
-      "jira_citations": 12,
-      "google_rank": null,
-      "created_at": "2026-09-28T18:00:00Z"
-    }
-  }
-}
-3. Historical Citation Graph Timeline
-GET /api/citations/timeline
-
-Example Response:
-
-json
-{
-  "data": [
-    {
-      "date": "2026-09-01",
-      "linear_citation_rate": 35.0,
-      "jira_citation_rate": 65.0,
-      "total_queries": 20,
-      "linear_citations": 7,
-      "jira_citations": 13,
-      "google_rank": null,
-      "source": "live_sonar_probes"
-    },
-    {
-      "date": "2026-09-08",
-      "linear_citation_rate": 40.0,
-      "jira_citation_rate": 60.0,
-      "total_queries": 20,
-      "linear_citations": 8,
-      "jira_citations": 12,
-      "google_rank": null,
-      "source": "live_sonar_probes"
-    }
-  ],
-  "source": "live_sonar_probes"
-}
-4. Background Scheduler Status
-GET /api/jobs/status
-
-Example Response:
-
-json
-{
-  "running": true,
-  "timezone": "UTC",
-  "jira_monitor_cron": "0 2 * * *",
-  "citation_probe_cron": "0 3 * * 1",
-  "last_jira_run": "2026-09-28T02:00:00Z",
-  "last_probe_run": "2026-09-28T03:00:00Z"
-}
-6. How the Frontend Graph Works
-In 
-
-AnalyticsView.jsx
-:
-
-Dynamic Loading: On mount, the component triggers fetch('/api/citations/timeline').
-Dual Series Plotting:
-Linear Citation Rate (%): Rendered as a glowing Mint curve (#3ee6aa) with interactive pin scrubbers.
-Jira Citation Rate (%): Rendered as a Blue/Indigo curve (#60a5fa).
-Google Rank: Rendered in Amber (#f59e0b) only when non-null. When null, it displays Null (Unfabricated) in the metrics cards and tooltip to strictly prevent fake Google ranking claims.
-Interactive Legend & Tooltip: Users can toggle individual series on/off, hover across any point on the curve to inspect Linear vs Jira citation counts (linear_citations / total_queries), and view the underlying audit table.
-View Switcher: Seamlessly toggles between Weekly AI Search Citation Rates (Perplexity Sonar probes) and the 8-Week Causal Anomaly Curve (historical event pins).
-7. How to Run Locally
-Run Backend
-powershell
-cd backend
-.\venv\Scripts\python.exe main.py
-Server starts at http://127.0.0.1:8000 with background scheduler active in UTC.
-
-Run Frontend
-powershell
-cd frontend_react
-npm run dev
-# Or build static assets served directly by FastAPI:
-npm run build
-Run Automated Tests
-powershell
-cd backend
-.\venv\Scripts\python.exe -m unittest discover -s tests -p "test_*.py"
-Result: 16 passing tests covering all sitemap parsing, normalization, hashing, Groq retention, domain normalization, citation rate counting, snapshot idempotency, and API endpoints.
-
-8. Assumptions & Safeguards
-SSRF Protection: 
-
-jira_monitor.py
- validates all scraped URLs, rejecting private IP ranges (127.0.0.1, 10.*, 192.168.*, 169.254.*, localhost) and limiting scraping to configured competitor domains (atlassian.com, jira.com).
-Resilient Retry Architecture: If Groq fails during a change event, the previous content is preserved without overwriting content_hash, allowing subsequent runs to re-detect the change and retry summary generation.
-Idempotency: SQLite enforces UNIQUE(date, query_set_version) so duplicate executions on the same day update existing records rather than creating duplicate snapshots.
-Google Rank Integrity: In strict accordance with instructions, google_rank is kept nullable and null unless populated by a genuine Google ranking integration.
+## REST API Reference
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/timeline` | Returns eight-week citation metrics and historical event pins. |
+| `POST` | `/api/memory/retain` | Ingests a new page modification, competitor release, or pull request. |
+| `POST` | `/api/memory/recall` | Retrieves historical memories and institutional heuristics. |
+| `POST` | `/api/memory/reflect` | Synthesizes higher-order insights across stored historical events. |
+| `POST` | `/api/agent/diagnose` | Executes Before-vs-After comparison (Stateless LLM vs. Hindsight Agent). |
+| `POST` | `/api/chat` | Copilot chat endpoint with automatic memory ingestion and recall. |
+| `POST` | `/api/probe/citation` | Evaluates simulated AI search engine behavior for target prompts. |
+| `GET` | `/api/coder/features` | Lists logged PRs and architectural milestones. |
+| `POST` | `/api/coder/features` | Ingests a new PR with associated GEO impact hypotheses. |
+| `GET` | `/api/status` | Returns system health, LLM status, and memory bank statistics. |
+
+---
+
+## Project Submission & Credits
+
+- **Project:** GeoHindsight (CrystalCore)
+- **Hackathon:** Vectorize Hindsight Hackathon
+- **Memory Layer:** [Vectorize Hindsight](https://hindsight.vectorize.io/) (`hindsight-client` Python SDK)
+- **Hindsight Cloud Bank ID:** `linear-seo-intelligence`
+- **Cloud Promo Code:** `MEMHACK99`
+- **Inference Engine:** [Groq](https://groq.com/) (`llama-3.3-70b-versatile`)
+- **License:** MIT
