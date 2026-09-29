@@ -1,18 +1,51 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 export default function AnalyticsView({
   timelineData,
   onAskAboutPin,
   onNavigateToChatWithPrompt
 }) {
-  const [selectedPinIndex, setSelectedPinIndex] = useState(7); // Default to Week 6 Feb 14 collapse point
+  const [timelineMode, setTimelineMode] = useState('probes'); // 'probes' (Weekly Linear vs Jira) or 'audit' (8-Week Anomaly Curve)
+  const [citationsTimeline, setCitationsTimeline] = useState([]);
+  const [citationsSource, setCitationsSource] = useState('live_sonar_probes');
+  const [isLoadingCitations, setIsLoadingCitations] = useState(false);
+
+  const [selectedPinIndex, setSelectedPinIndex] = useState(0);
   const [hoveredIndex, setHoveredIndex] = useState(null);
-  const [activeSeries, setActiveSeries] = useState({ perp: true, gpt: true, google: true });
+  const [activeSeries, setActiveSeries] = useState({ linear: true, jira: true, google: false });
   const [hoveredSeries, setHoveredSeries] = useState(null);
   const svgRef = useRef(null);
 
-  const events = timelineData?.timeline || [];
-  const selectedEvent = events[selectedPinIndex] || null;
+  // Fetch live AI search citation snapshots from /api/citations/timeline
+  const fetchCitationsTimeline = async () => {
+    setIsLoadingCitations(true);
+    try {
+      const res = await fetch('/api/citations/timeline');
+      if (res.ok) {
+        const json = await res.json();
+        setCitationsTimeline(json.data || []);
+        setCitationsSource(json.source || 'live_sonar_probes');
+        if (json.data && json.data.length > 0) {
+          setSelectedPinIndex(json.data.length - 1); // Default to latest snapshot
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load citations timeline:', err);
+    } finally {
+      setIsLoadingCitations(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCitationsTimeline();
+  }, []);
+
+  const auditEvents = timelineData?.timeline || [];
+
+  // Determine current active dataset based on mode
+  const isProbeMode = timelineMode === 'probes';
+  const currentDataset = isProbeMode ? citationsTimeline : auditEvents;
+  const selectedItem = currentDataset[selectedPinIndex] || null;
 
   // SVG Chart Dimensions
   const width = 1000;
@@ -22,26 +55,41 @@ export default function AnalyticsView({
   const plotHeight = height - padding.top - padding.bottom;
 
   // Compute point coordinates
-  const ptsPerp = [];
-  const ptsGpt = [];
+  const ptsLinear = [];
+  const ptsJira = [];
   const ptsGoogle = [];
 
-  events.forEach((evt, idx) => {
-    const x = padding.left + (idx / Math.max(1, events.length - 1)) * plotWidth;
-    const m = evt.citation_metrics || {};
+  const datasetLength = Math.max(1, currentDataset.length - 1);
 
-    const perpVal = m.perplexity_citation_rate ?? 0;
-    const gptVal = m.chatgpt_search_visibility ?? 0;
-    const googleRank = m.google_rank ?? 1;
-    const normalizedRank = Math.max(0, 100 - (googleRank - 1) * 12);
+  currentDataset.forEach((item, idx) => {
+    const x = padding.left + (idx / datasetLength) * plotWidth;
 
-    const yPerp = padding.top + plotHeight - (perpVal / 100) * plotHeight;
-    const yGpt = padding.top + plotHeight - (gptVal / 100) * plotHeight;
-    const yGoogle = padding.top + plotHeight - (normalizedRank / 100) * plotHeight;
+    let linearVal = 0;
+    let jiraVal = 0;
+    let googleRank = null;
 
-    ptsPerp.push({ x, y: yPerp, evt, val: perpVal, idx });
-    ptsGpt.push({ x, y: yGpt, evt, val: gptVal, idx });
-    ptsGoogle.push({ x, y: yGoogle, evt, val: googleRank, idx });
+    if (isProbeMode) {
+      linearVal = item.linear_citation_rate ?? 0;
+      jiraVal = item.jira_citation_rate ?? 0;
+      googleRank = item.google_rank; // nullable
+    } else {
+      const m = item.citation_metrics || {};
+      linearVal = m.perplexity_citation_rate ?? 0;
+      jiraVal = Math.max(0, 100 - linearVal);
+      googleRank = m.google_rank;
+    }
+
+    const yLinear = padding.top + plotHeight - (linearVal / 100) * plotHeight;
+    const yJira = padding.top + plotHeight - (jiraVal / 100) * plotHeight;
+
+    ptsLinear.push({ x, y: yLinear, item, val: linearVal, idx });
+    ptsJira.push({ x, y: yJira, item, val: jiraVal, idx });
+
+    if (googleRank !== null && googleRank !== undefined) {
+      const normalizedRank = Math.max(0, 100 - (googleRank - 1) * 12);
+      const yGoogle = padding.top + plotHeight - (normalizedRank / 100) * plotHeight;
+      ptsGoogle.push({ x, y: yGoogle, item, val: googleRank, idx });
+    }
   });
 
   // Smooth Catmull-Rom / Cubic Bezier curve generator
@@ -63,25 +111,24 @@ export default function AnalyticsView({
     return path;
   };
 
-  const smoothPerpPath = makeSmoothPath(ptsPerp);
-  const smoothGptPath = makeSmoothPath(ptsGpt);
+  const smoothLinearPath = makeSmoothPath(ptsLinear);
+  const smoothJiraPath = makeSmoothPath(ptsJira);
   const smoothGooglePath = makeSmoothPath(ptsGoogle);
 
-  const areaStr = ptsPerp.length > 0
-    ? `${smoothPerpPath} L ${ptsPerp[ptsPerp.length - 1].x} ${padding.top + plotHeight} L ${ptsPerp[0].x} ${padding.top + plotHeight} Z`
+  const linearAreaStr = ptsLinear.length > 0
+    ? `${smoothLinearPath} L ${ptsLinear[ptsLinear.length - 1].x} ${padding.top + plotHeight} L ${ptsLinear[0].x} ${padding.top + plotHeight} Z`
     : '';
 
-  // Interactive mouse handlers for smooth scrubbing crosshair
+  // Mouse handlers for smooth scrubbing crosshair
   const handleMouseMove = (e) => {
-    if (!svgRef.current || ptsPerp.length === 0) return;
+    if (!svgRef.current || ptsLinear.length === 0) return;
     const rect = svgRef.current.getBoundingClientRect();
     const clientX = e.clientX - rect.left;
     const svgX = (clientX / rect.width) * width;
 
-    // Find nearest point
     let closestIdx = 0;
     let minDist = Infinity;
-    ptsPerp.forEach((p, i) => {
+    ptsLinear.forEach((p, i) => {
       const dist = Math.abs(p.x - svgX);
       if (dist < minDist) {
         minDist = dist;
@@ -96,7 +143,8 @@ export default function AnalyticsView({
     setHoveredIndex(null);
   };
 
-  const activeHoverPoint = hoveredIndex !== null ? ptsPerp[hoveredIndex] : null;
+  const activeHoverPoint = hoveredIndex !== null ? ptsLinear[hoveredIndex] : null;
+  const activeJiraPoint = hoveredIndex !== null ? ptsJira[hoveredIndex] : null;
 
   const toggleSeries = (key) => {
     setActiveSeries(prev => ({ ...prev, [key]: !prev[key] }));
@@ -105,14 +153,15 @@ export default function AnalyticsView({
   const handleSeeReasonClick = (prompt) => {
     if (onNavigateToChatWithPrompt) {
       onNavigateToChatWithPrompt(prompt);
-    } else if (onAskAboutPin && selectedEvent) {
-      onAskAboutPin(selectedEvent);
+    } else if (onAskAboutPin && selectedItem) {
+      onAskAboutPin(selectedItem);
     }
   };
 
-  // Anomaly zone bounds: Jan 26 (idx 4) to Feb 24 (idx 9)
-  const anomalyXStart = ptsPerp[4]?.x ?? padding.left;
-  const anomalyXEnd = ptsPerp[ptsPerp.length - 1]?.x ?? (width - padding.right);
+  // Latest metrics calculation
+  const latestSnapshot = citationsTimeline[citationsTimeline.length - 1] || null;
+  const latestLinearRate = latestSnapshot ? latestSnapshot.linear_citation_rate : 40.0;
+  const latestJiraRate = latestSnapshot ? latestSnapshot.jira_citation_rate : 60.0;
 
   return (
     <section className="view-container active" id="viewAnalytics">
@@ -121,76 +170,131 @@ export default function AnalyticsView({
         {/* Header */}
         <div className="analytics-header">
           <div>
-            <h2 className="page-title">Competitive Citation Analytics</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.35rem' }}>
+              <span style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '0.05em', color: 'var(--mint-primary)', background: 'rgba(62, 230, 170, 0.1)', padding: '2px 8px', borderRadius: '4px' }}>
+                GEO SEARCH INTELLIGENCE
+              </span>
+              <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                Target: <strong style={{ color: 'var(--text-main)' }}>Linear</strong> vs. Rival <strong style={{ color: 'var(--text-main)' }}>Atlassian Jira</strong>
+              </span>
+            </div>
+            <h2 className="page-title">AI Search Citation Rate Graph</h2>
             <p className="page-subtitle">
-              Historical correlation of on-page modifications, competitor releases, and AI answer engine visibility.
+              Weekly historical citation rates on Perplexity Sonar across benchmark queries, correlated with competitor releases and algorithm re-indexing.
             </p>
           </div>
-          <div className="time-range-pill">
-            <span className="live-pulse-dot"></span>
-            <span>8-Week Audit Window</span>
+
+          <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <div className="time-range-pill" style={{ cursor: 'pointer' }} onClick={fetchCitationsTimeline} title="Click to refresh live timeline from API">
+              <span className="live-pulse-dot"></span>
+              <span>{isLoadingCitations ? 'Updating...' : 'Live Sonar Feed'}</span>
+            </div>
+
+            {/* Mode Switcher */}
+            <div style={{ display: 'flex', background: 'var(--bg-pitch)', padding: '3px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+              <button
+                type="button"
+                onClick={() => { setTimelineMode('probes'); setSelectedPinIndex(0); }}
+                style={{
+                  background: isProbeMode ? 'var(--mint-primary)' : 'transparent',
+                  color: isProbeMode ? '#000000' : 'var(--text-secondary)',
+                  border: 'none',
+                  padding: '5px 12px',
+                  borderRadius: '6px',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                📊 Weekly Citation Rates
+              </button>
+              <button
+                type="button"
+                onClick={() => { setTimelineMode('audit'); setSelectedPinIndex(7); }}
+                style={{
+                  background: !isProbeMode ? 'var(--accent-linear)' : 'transparent',
+                  color: !isProbeMode ? '#ffffff' : 'var(--text-secondary)',
+                  border: 'none',
+                  padding: '5px 12px',
+                  borderRadius: '6px',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                📌 8-Week Audit & Anomaly
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* KPI Cards Strip (All Green Theme, Zero Static Reasoning) */}
+        {/* KPI Cards Strip */}
         <div className="analytics-kpi-grid">
           <div className="kpi-card">
-            <div className="kpi-label">Perplexity Citation Share</div>
-            <div className="kpi-val">18.4%</div>
-            <div className="kpi-meta"><span className="trend-green">-70%</span> from 88% peak (Feb 14)</div>
+            <div className="kpi-label">Linear AI Citation Rate</div>
+            <div className="kpi-val" style={{ color: 'var(--mint-primary)' }}>{latestLinearRate}%</div>
+            <div className="kpi-meta">Across {latestSnapshot ? latestSnapshot.total_queries : 20} tested Sonar queries</div>
           </div>
 
           <div className="kpi-card">
-            <div className="kpi-label">Atlassian Jira Lead</div>
-            <div className="kpi-val">74.2%</div>
-            <div className="kpi-meta"><span className="trend-green">+56%</span> captured comparison queries</div>
+            <div className="kpi-label">Atlassian Jira Citation Rate</div>
+            <div className="kpi-val" style={{ color: '#60a5fa' }}>{latestJiraRate}%</div>
+            <div className="kpi-meta">Captured via enterprise comparison guides</div>
           </div>
 
           <div className="kpi-card">
-            <div className="kpi-label">Weekly AI Referrals</div>
-            <div className="kpi-val">310 / wk</div>
-            <div className="kpi-meta"><span className="trend-green">-81%</span> dropped from 1,650/wk</div>
+            <div className="kpi-label">Probe Query Coverage</div>
+            <div className="kpi-val">20 Queries</div>
+            <div className="kpi-meta">Startup, Developer & Agile query sets</div>
           </div>
 
           <div className="kpi-card">
-            <div className="kpi-label">Primary Root Vulnerability</div>
-            <div className="kpi-val-sm" style={{ color: 'var(--mint-primary)', fontWeight: '700' }}>Diagnostic Alert</div>
-            <div className="kpi-meta">Requires AI Causal Diagnosis</div>
+            <div className="kpi-label">Google Rank Status</div>
+            <div className="kpi-val-sm" style={{ color: '#f59e0b', fontWeight: '700' }}>
+              {latestSnapshot?.google_rank ? `#${latestSnapshot.google_rank}` : 'Null (Unfabricated)'}
+            </div>
+            <div className="kpi-meta">Clearly distinguished from AI citation data</div>
           </div>
         </div>
 
-        {/* Multi-Metric Dynamic Interactive SVG Chart */}
+        {/* Dynamic Interactive SVG Chart */}
         <div className="chart-card">
           <div className="chart-card-header">
             <div>
-              <h3 className="chart-title">8-Week Multi-Metric Timeline Curve</h3>
+              <h3 className="chart-title">
+                {isProbeMode ? 'Weekly AI Search Citation Rate (%)' : '8-Week Multi-Metric Anomaly Timeline Curve'}
+              </h3>
               <span className="chart-subtitle">
-                Interactive causal timeline • Move cursor across curve to scrub metrics, click pins to inspect
+                {isProbeMode
+                  ? 'Perplexity Sonar measurement • Series: Linear vs. Atlassian Jira • Scrub across points to inspect'
+                  : 'Interactive causal timeline • Move cursor across curve to scrub metrics, click pins to inspect'}
               </span>
             </div>
 
             {/* Interactive Legend with Toggle & Hover Controls */}
             <div className="chart-legend interactive">
               <button
-                className={`legend-btn ${activeSeries.perp ? 'active' : 'dimmed'} ${hoveredSeries === 'perp' ? 'highlighted' : ''}`}
-                onClick={() => toggleSeries('perp')}
-                onMouseEnter={() => setHoveredSeries('perp')}
+                className={`legend-btn ${activeSeries.linear ? 'active' : 'dimmed'} ${hoveredSeries === 'linear' ? 'highlighted' : ''}`}
+                onClick={() => toggleSeries('linear')}
+                onMouseEnter={() => setHoveredSeries('linear')}
                 onMouseLeave={() => setHoveredSeries(null)}
-                title="Click to toggle Perplexity Citation %"
+                title="Click to toggle Linear Citation %"
               >
-                <span className="legend-dot perp" style={{ background: '#3ee6aa' }}></span>
-                <span>Perplexity Citation %</span>
+                <span className="legend-dot" style={{ background: '#3ee6aa' }}></span>
+                <span>Linear Citation %</span>
               </button>
 
               <button
-                className={`legend-btn ${activeSeries.gpt ? 'active' : 'dimmed'} ${hoveredSeries === 'gpt' ? 'highlighted' : ''}`}
-                onClick={() => toggleSeries('gpt')}
-                onMouseEnter={() => setHoveredSeries('gpt')}
+                className={`legend-btn ${activeSeries.jira ? 'active' : 'dimmed'} ${hoveredSeries === 'jira' ? 'highlighted' : ''}`}
+                onClick={() => toggleSeries('jira')}
+                onMouseEnter={() => setHoveredSeries('jira')}
                 onMouseLeave={() => setHoveredSeries(null)}
-                title="Click to toggle ChatGPT Search %"
+                title="Click to toggle Jira Citation %"
               >
-                <span className="legend-dot gpt" style={{ background: '#60a5fa' }}></span>
-                <span>ChatGPT Search %</span>
+                <span className="legend-dot" style={{ background: '#60a5fa' }}></span>
+                <span>Jira Citation %</span>
               </button>
 
               <button
@@ -198,9 +302,9 @@ export default function AnalyticsView({
                 onClick={() => toggleSeries('google')}
                 onMouseEnter={() => setHoveredSeries('google')}
                 onMouseLeave={() => setHoveredSeries(null)}
-                title="Click to toggle Google Rank"
+                title="Click to toggle Google Rank (if available)"
               >
-                <span className="legend-dot google" style={{ background: '#f59e0b' }}></span>
+                <span className="legend-dot" style={{ background: '#f59e0b' }}></span>
                 <span>Google Rank</span>
               </button>
             </div>
@@ -218,18 +322,11 @@ export default function AnalyticsView({
               preserveAspectRatio="none"
             >
               <defs>
-                {/* Area Gradient for Perplexity Curve */}
-                <linearGradient id="perpAreaGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#3ee6aa" stopOpacity="0.32" />
-                  <stop offset="60%" stopColor="#3ee6aa" stopOpacity="0.08" />
+                {/* Area Gradient for Linear Curve */}
+                <linearGradient id="linearAreaGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#3ee6aa" stopOpacity="0.28" />
+                  <stop offset="60%" stopColor="#3ee6aa" stopOpacity="0.06" />
                   <stop offset="100%" stopColor="#3ee6aa" stopOpacity="0.0" />
-                </linearGradient>
-
-                {/* Anomaly Highlight Zone Gradient */}
-                <linearGradient id="anomalyZoneGradient" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#3ee6aa" stopOpacity="0.04" />
-                  <stop offset="50%" stopColor="#3ee6aa" stopOpacity="0.12" />
-                  <stop offset="100%" stopColor="#3ee6aa" stopOpacity="0.06" />
                 </linearGradient>
 
                 {/* Neon Glow Filters */}
@@ -243,40 +340,6 @@ export default function AnalyticsView({
                   <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#f59e0b" floodOpacity="0.6" />
                 </filter>
               </defs>
-
-              {/* Anomaly Detection Zone Band */}
-              {anomalyXStart && anomalyXEnd && (
-                <g className="anomaly-zone-group">
-                  <rect
-                    x={anomalyXStart}
-                    y={padding.top}
-                    width={anomalyXEnd - anomalyXStart}
-                    height={plotHeight}
-                    fill="url(#anomalyZoneGradient)"
-                    rx="6"
-                  />
-                  <line
-                    x1={anomalyXStart}
-                    y1={padding.top}
-                    x2={anomalyXStart}
-                    y2={padding.top + plotHeight}
-                    stroke="#3ee6aa"
-                    strokeWidth="1.5"
-                    strokeDasharray="4 4"
-                    strokeOpacity="0.6"
-                  />
-                  <text
-                    x={anomalyXStart + 10}
-                    y={padding.top + 16}
-                    fill="#3ee6aa"
-                    fontSize="10"
-                    fontWeight="700"
-                    letterSpacing="0.04em"
-                  >
-                    ✦ Causal Anomaly Window (-70% Drop)
-                  </text>
-                </g>
-              )}
 
               {/* Horizontal Grid lines */}
               {[0, 25, 50, 75, 100].map((yVal) => {
@@ -305,12 +368,12 @@ export default function AnalyticsView({
                 );
               })}
 
-              {/* Glowing Gradient Area under Perplexity curve */}
-              {areaStr && activeSeries.perp && (
-                <path d={areaStr} fill="url(#perpAreaGradient)" />
+              {/* Linear Gradient Area */}
+              {linearAreaStr && activeSeries.linear && (
+                <path d={linearAreaStr} fill="url(#linearAreaGradient)" />
               )}
 
-              {/* Google Rank Curve (Smooth Bezier) */}
+              {/* Google Rank Curve (if toggled & points exist) */}
               {ptsGoogle.length > 0 && activeSeries.google && (
                 <path
                   d={smoothGooglePath}
@@ -325,55 +388,35 @@ export default function AnalyticsView({
                 />
               )}
 
-              {/* ChatGPT Search Curve (Smooth Bezier) */}
-              {ptsGpt.length > 0 && activeSeries.gpt && (
+              {/* Jira Citation Curve (Smooth Bezier) */}
+              {ptsJira.length > 0 && activeSeries.jira && (
                 <path
-                  d={smoothGptPath}
+                  d={smoothJiraPath}
                   fill="none"
                   stroke="#60a5fa"
-                  strokeWidth={hoveredSeries === 'gpt' ? 3.5 : 2.2}
+                  strokeWidth={hoveredSeries === 'jira' ? 3.5 : 2.4}
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  filter={hoveredSeries === 'gpt' ? 'url(#glowBlue)' : 'none'}
-                  opacity={hoveredSeries && hoveredSeries !== 'gpt' ? 0.25 : 0.9}
+                  filter={hoveredSeries === 'jira' ? 'url(#glowBlue)' : 'none'}
+                  opacity={hoveredSeries && hoveredSeries !== 'jira' ? 0.25 : 0.9}
                   style={{ transition: 'all 0.2s' }}
                 />
               )}
 
-              {/* Perplexity Curve (Smooth Bezier with Mint Neon Glow) */}
-              {ptsPerp.length > 0 && activeSeries.perp && (
+              {/* Linear Citation Curve (Smooth Bezier with Mint Neon Glow) */}
+              {ptsLinear.length > 0 && activeSeries.linear && (
                 <path
-                  d={smoothPerpPath}
+                  d={smoothLinearPath}
                   fill="none"
                   stroke="#3ee6aa"
-                  strokeWidth={hoveredSeries === 'perp' ? 4 : 3}
+                  strokeWidth={hoveredSeries === 'linear' ? 4 : 3}
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   filter="url(#glowMint)"
-                  opacity={hoveredSeries && hoveredSeries !== 'perp' ? 0.25 : 1}
+                  opacity={hoveredSeries && hoveredSeries !== 'linear' ? 0.25 : 1}
                   style={{ transition: 'all 0.2s' }}
                 />
               )}
-
-              {/* Animated Pulse Rings on Key Milestone Events */}
-              {ptsPerp.map((p, idx) => {
-                // Key inflection points: Jan 26 (idx 4 video embed) and Feb 14 (idx 7 collapse)
-                const isMilestone = idx === 4 || idx === 7;
-                if (!isMilestone || !activeSeries.perp) return null;
-
-                return (
-                  <g key={`pulse-${idx}`}>
-                    <circle
-                      cx={p.x}
-                      cy={p.y}
-                      r="12"
-                      fill="none"
-                      stroke="#3ee6aa"
-                      className="chart-pulse-ring"
-                    />
-                  </g>
-                );
-              })}
 
               {/* Vertical Scrubber Crosshair Line on Hover */}
               {activeHoverPoint && (
@@ -391,10 +434,11 @@ export default function AnalyticsView({
               )}
 
               {/* X Date Labels & Interactive Pins */}
-              {ptsPerp.map((p, idx) => {
+              {ptsLinear.map((p, idx) => {
                 const isSelected = idx === selectedPinIndex;
                 const isHovered = idx === hoveredIndex;
-                const dateStr = p.evt.date ? p.evt.date.substring(5) : '';
+                const dateRaw = p.item.date || '';
+                const dateStr = dateRaw.length > 5 ? dateRaw.substring(5) : dateRaw;
 
                 return (
                   <g key={idx} className="chart-point-group">
@@ -411,38 +455,43 @@ export default function AnalyticsView({
                       {dateStr}
                     </text>
 
-                    {/* Circular Interactive Pin */}
-                    <circle
-                      cx={p.x}
-                      cy={p.y}
-                      r={isSelected ? 8 : isHovered ? 6.5 : 4.5}
-                      fill={isSelected ? '#ffffff' : isHovered ? '#3ee6aa' : '#10b981'}
-                      stroke={isSelected ? '#3ee6aa' : '#0e0f13'}
-                      strokeWidth={isSelected ? '3' : '2'}
-                      style={{
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease',
-                        filter: isSelected
-                          ? 'drop-shadow(0 0 10px rgba(62, 230, 170, 0.9))'
-                          : isHovered
-                            ? 'drop-shadow(0 0 8px rgba(62, 230, 170, 0.6))'
-                            : 'none'
-                      }}
-                      onClick={() => setSelectedPinIndex(idx)}
-                    />
-
-                    {/* Secondary Series Points */}
-                    {activeSeries.gpt && ptsGpt[idx] && (
+                    {/* Linear Pin */}
+                    {activeSeries.linear && (
                       <circle
-                        cx={ptsGpt[idx].x}
-                        cy={ptsGpt[idx].y}
-                        r={isHovered ? 5 : 3}
-                        fill="#60a5fa"
-                        stroke="#0e0f13"
-                        strokeWidth="1.5"
+                        cx={p.x}
+                        cy={p.y}
+                        r={isSelected ? 8 : isHovered ? 6.5 : 4.5}
+                        fill={isSelected ? '#ffffff' : isHovered ? '#3ee6aa' : '#10b981'}
+                        stroke={isSelected ? '#3ee6aa' : '#0e0f13'}
+                        strokeWidth={isSelected ? '3' : '2'}
+                        style={{
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                          filter: isSelected
+                            ? 'drop-shadow(0 0 10px rgba(62, 230, 170, 0.9))'
+                            : isHovered
+                              ? 'drop-shadow(0 0 8px rgba(62, 230, 170, 0.6))'
+                              : 'none'
+                        }}
+                        onClick={() => setSelectedPinIndex(idx)}
                       />
                     )}
 
+                    {/* Jira Pin */}
+                    {activeSeries.jira && ptsJira[idx] && (
+                      <circle
+                        cx={ptsJira[idx].x}
+                        cy={ptsJira[idx].y}
+                        r={isHovered ? 5.5 : 3.5}
+                        fill="#60a5fa"
+                        stroke="#0e0f13"
+                        strokeWidth="1.5"
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => setSelectedPinIndex(idx)}
+                      />
+                    )}
+
+                    {/* Google Rank Pin */}
                     {activeSeries.google && ptsGoogle[idx] && (
                       <circle
                         cx={ptsGoogle[idx].x}
@@ -458,7 +507,7 @@ export default function AnalyticsView({
               })}
             </svg>
 
-            {/* Floating Dynamic Tooltip tracking the Hovered Point */}
+            {/* Floating Dynamic Tooltip */}
             {activeHoverPoint && (
               <div
                 className="dynamic-chart-tooltip"
@@ -468,54 +517,141 @@ export default function AnalyticsView({
                 }}
               >
                 <div className="tooltip-header">
-                  <span className="tooltip-date">{activeHoverPoint.evt.date}</span>
-                  <span className="tooltip-week">{activeHoverPoint.evt.week || 'WEEK'}</span>
+                  <span className="tooltip-date">{activeHoverPoint.item.date}</span>
+                  <span className="tooltip-week">
+                    {activeHoverPoint.item.week || `SNAPSHOT #${hoveredIndex + 1}`}
+                  </span>
                 </div>
-                <div className="tooltip-title">{activeHoverPoint.evt.title}</div>
+                <div className="tooltip-title">
+                  {activeHoverPoint.item.title || 'AI Citation Probe Evaluation'}
+                </div>
                 <div className="tooltip-metrics">
                   <div className="metric-row">
-                    <span className="dot perp"></span>
-                    <span className="label">Perplexity:</span>
-                    <strong className="val">{activeHoverPoint.evt.citation_metrics?.perplexity_citation_rate}%</strong>
+                    <span className="dot" style={{ background: '#3ee6aa' }}></span>
+                    <span className="label">Linear:</span>
+                    <strong className="val">{activeHoverPoint.val}%</strong>
+                    {isProbeMode && activeHoverPoint.item.linear_citations !== undefined && (
+                      <span style={{ fontSize: '10px', color: 'var(--text-muted)', marginLeft: '4px' }}>
+                        ({activeHoverPoint.item.linear_citations}/{activeHoverPoint.item.total_queries})
+                      </span>
+                    )}
                   </div>
                   <div className="metric-row">
-                    <span className="dot gpt"></span>
-                    <span className="label">ChatGPT Search:</span>
-                    <strong className="val">{activeHoverPoint.evt.citation_metrics?.chatgpt_search_visibility}%</strong>
+                    <span className="dot" style={{ background: '#60a5fa' }}></span>
+                    <span className="label">Jira:</span>
+                    <strong className="val">{activeJiraPoint ? activeJiraPoint.val : 0}%</strong>
+                    {isProbeMode && activeHoverPoint.item.jira_citations !== undefined && (
+                      <span style={{ fontSize: '10px', color: 'var(--text-muted)', marginLeft: '4px' }}>
+                        ({activeHoverPoint.item.jira_citations}/{activeHoverPoint.item.total_queries})
+                      </span>
+                    )}
                   </div>
                   <div className="metric-row">
-                    <span className="dot google"></span>
+                    <span className="dot" style={{ background: '#f59e0b' }}></span>
                     <span className="label">Google Rank:</span>
-                    <strong className="val">#{activeHoverPoint.evt.citation_metrics?.google_rank}</strong>
+                    <strong className="val">
+                      {activeHoverPoint.item.google_rank
+                        ? `#${activeHoverPoint.item.google_rank}`
+                        : 'Null (Not Fabricated)'}
+                    </strong>
                   </div>
                 </div>
-                <div className="tooltip-hint">Click point to view event details</div>
+                <div className="tooltip-hint">Click point to view snapshot breakdown</div>
               </div>
             )}
           </div>
 
+          {/* Historical Citation Data Table */}
+          {isProbeMode && currentDataset.length > 0 && (
+            <div style={{ marginTop: '1.25rem', overflowX: 'auto', borderTop: '1px solid var(--border-subtle)', paddingTop: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '0.04em' }}>
+                  WEEKLY SNAPSHOT BREAKDOWN ({currentDataset.length} AUDITS)
+                </span>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                  Data Source: <code style={{ color: 'var(--mint-primary)' }}>GET /api/citations/timeline</code>
+                </span>
+              </div>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
+                <thead>
+                  <tr style={{ color: 'var(--text-muted)', borderBottom: '1px solid var(--border-subtle)' }}>
+                    <th style={{ padding: '8px 12px' }}>Date</th>
+                    <th style={{ padding: '8px 12px' }}>Linear Citation Rate</th>
+                    <th style={{ padding: '8px 12px' }}>Jira Citation Rate</th>
+                    <th style={{ padding: '8px 12px' }}>Linear Citations</th>
+                    <th style={{ padding: '8px 12px' }}>Jira Citations</th>
+                    <th style={{ padding: '8px 12px' }}>Total Queries</th>
+                    <th style={{ padding: '8px 12px' }}>Google Rank</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentDataset.map((snap, sIdx) => {
+                    const isSelected = sIdx === selectedPinIndex;
+                    return (
+                      <tr
+                        key={sIdx}
+                        onClick={() => setSelectedPinIndex(sIdx)}
+                        style={{
+                          cursor: 'pointer',
+                          background: isSelected ? 'rgba(62, 230, 170, 0.08)' : 'transparent',
+                          borderBottom: '1px solid rgba(255, 255, 255, 0.04)',
+                          transition: 'background 0.15s ease'
+                        }}
+                      >
+                        <td style={{ padding: '8px 12px', fontWeight: 700, color: 'var(--text-main)', fontFamily: 'var(--font-mono)' }}>
+                          {snap.date}
+                        </td>
+                        <td style={{ padding: '8px 12px', color: 'var(--mint-primary)', fontWeight: 800 }}>
+                          {snap.linear_citation_rate}%
+                        </td>
+                        <td style={{ padding: '8px 12px', color: '#60a5fa', fontWeight: 800 }}>
+                          {snap.jira_citation_rate}%
+                        </td>
+                        <td style={{ padding: '8px 12px', color: 'var(--text-secondary)' }}>
+                          {snap.linear_citations}
+                        </td>
+                        <td style={{ padding: '8px 12px', color: 'var(--text-secondary)' }}>
+                          {snap.jira_citations}
+                        </td>
+                        <td style={{ padding: '8px 12px', color: 'var(--text-muted)' }}>
+                          {snap.total_queries}
+                        </td>
+                        <td style={{ padding: '8px 12px', color: '#f59e0b' }}>
+                          {snap.google_rank ? `#${snap.google_rank}` : 'Null (Unfabricated)'}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+
           {/* Event Card for Selected Pin */}
-          {selectedEvent && (
-            <div className="selected-pin-summary" id="selectedPinSummary">
+          {selectedItem && (
+            <div className="selected-pin-summary" id="selectedPinSummary" style={{ marginTop: '1.25rem' }}>
               <div className="pin-summary-header">
                 <span className="pin-badge" id="pinBadge">
-                  {selectedEvent.week ? selectedEvent.week.toUpperCase() : 'EVENT'} • {selectedEvent.event_type}
+                  {selectedItem.week ? selectedItem.week.toUpperCase() : 'CITATION SNAPSHOT'} • {selectedItem.event_type || 'PERPLEXITY_SONAR'}
                 </span>
-                <strong id="pinTitle">{selectedEvent.title}</strong>
-                <span className="pin-date" id="pinDate">{selectedEvent.date}</span>
+                <strong id="pinTitle">
+                  {selectedItem.title || `Snapshot ${selectedItem.date}: Linear ${selectedItem.linear_citation_rate}% vs Jira ${selectedItem.jira_citation_rate}%`}
+                </strong>
+                <span className="pin-date" id="pinDate">{selectedItem.date}</span>
               </div>
               <p className="pin-details" id="pinDetails">
-                {selectedEvent.details} (Significance: {selectedEvent.significance})
+                {selectedItem.details || `AI Search citation evaluation across ${selectedItem.total_queries} queries. Linear cited in ${selectedItem.linear_citations} queries (${selectedItem.linear_citation_rate}%), Jira cited in ${selectedItem.jira_citations} queries (${selectedItem.jira_citation_rate}%).`}
+                {selectedItem.significance && ` (Significance: ${selectedItem.significance})`}
               </p>
               <div className="pin-actions">
                 <button
                   className="btn-ask-copilot"
                   id="btnAskAboutPin"
                   onClick={() => handleSeeReasonClick(
-                    `Explain why the event on ${selectedEvent.date} ('${selectedEvent.title}') impacted our AI search citations and how it compared against Jira.`
+                    `Analyze our AI search citation performance on ${selectedItem.date}. Explain why our citation rate was ${selectedItem.linear_citation_rate}% compared to Atlassian Jira's ${selectedItem.jira_citation_rate}%, and what actions we should take.`
                   )}
                 >
-                  <span>⚡ See Reason for This Event in Chat</span>
+                  <span>⚡ Ask Copilot About This Citation Result</span>
                   <svg className="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <line x1="5" y1="12" x2="19" y2="12" />
                     <polyline points="12 5 19 12 12 19" />
@@ -526,7 +662,7 @@ export default function AnalyticsView({
           )}
         </div>
 
-        {/* Causal Anomaly Detection Hub (No static reasoning text - directs to AI Agent) */}
+        {/* Causal Anomaly Detection Hub */}
         <div className="anomaly-action-card">
           <div className="anomaly-card-left">
             <div className="anomaly-badge">

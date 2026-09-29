@@ -10,6 +10,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
 from app.core.config import settings
+from app.core.database import init_db
+from app.jobs.scheduler import scheduler
 from app.api.router import api_router
 
 def create_app() -> FastAPI:
@@ -18,6 +20,15 @@ def create_app() -> FastAPI:
         version=settings.VERSION,
         description=settings.DESCRIPTION
     )
+
+    @app.on_event("startup")
+    async def startup_event():
+        init_db()
+        scheduler.start()
+
+    @app.on_event("shutdown")
+    async def shutdown_event():
+        scheduler.stop()
 
     # Enable CORS
     app.add_middleware(

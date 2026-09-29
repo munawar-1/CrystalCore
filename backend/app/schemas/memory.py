@@ -11,6 +11,8 @@ class RetainRequest(BaseModel):
     event_type: str = "MANUAL_EVENT"
     page: Optional[str] = "linear.app"
     date: Optional[str] = "2026-03-01"
+    competitor: Optional[str] = None
+    source_url: Optional[str] = None
 
 class RecallRequest(BaseModel):
     query: str

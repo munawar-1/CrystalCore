@@ -1,9 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 
 export default function AuthModal({ isOpen, onClose, onRoleChanged }) {
   const { user, roles, switchRole } = useAuth();
   const [selectedRole, setSelectedRole] = useState(user.role);
+
+  useEffect(() => {
+    if (user?.role) {
+      setSelectedRole(user.role);
+    }
+  }, [isOpen, user?.role]);
 
   if (!isOpen) return null;
 

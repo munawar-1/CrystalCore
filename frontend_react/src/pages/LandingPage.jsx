@@ -1,6 +1,5 @@
 import React from 'react';
 import TypewriterText from '../components/TypewriterText';
-import ThemeToggle from '../components/copilot/ThemeToggle';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import '../styles/landing.css';
@@ -56,9 +55,6 @@ export default function LandingPage({ onNavigate }) {
         </div>
 
         <div className="nav-right" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          {/* Light / Dark Theme Toggle on Landing */}
-          <ThemeToggle style={{ background: 'rgba(255, 255, 255, 0.06)', border: '1px solid var(--border-subtle)', borderRadius: '999px', padding: '0.45rem 0.85rem' }} />
-
           <button onClick={handleLaunch} className="btn-launch-pill" id="btnTopLaunch">
             <span>LAUNCH AGENT</span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="arrow-up-right">
@@ -162,9 +158,9 @@ export default function LandingPage({ onNavigate }) {
             <p className="card-desc">Monitors citation drops, tracks Jira price hikes, and leverages coder-retained memories to defeat competitors in AI search.</p>
           </div>
           <div className="framework-card highlight">
-            <div className="card-metric">☀️ / 🌙</div>
-            <h3 className="card-title">Dual Theme System</h3>
-            <p className="card-desc">Sleek, high-contrast Light Theme designed alongside the glassmorphic dark studio theme.</p>
+            <div className="card-metric">🧠 Hindsight Engine</div>
+            <h3 className="card-title">Causal GEO Memory</h3>
+            <p className="card-desc">Remembers 8+ weeks of algorithmic re-indexing, competitor releases, and causal citation shifts using Retain, Recall, and Reflect.</p>
           </div>
         </div>
       </section>

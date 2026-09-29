@@ -261,6 +261,26 @@ export default function ChatView({
           <div className="claude-hero">
             <ClaudeStarburst />
             <h1 className="claude-greeting">{getClaudeGreeting()}</h1>
+            <div
+              className="chat-role-indicator"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                marginTop: '0.5rem',
+                padding: '4px 12px',
+                borderRadius: '999px',
+                background: isCoder ? 'rgba(62, 230, 170, 0.1)' : 'rgba(94, 106, 210, 0.1)',
+                border: isCoder ? '1px solid rgba(62, 230, 170, 0.3)' : '1px solid rgba(94, 106, 210, 0.3)',
+                fontSize: '12px',
+                fontWeight: 700,
+                color: isCoder ? 'var(--mint-primary)' : 'var(--accent-linear)'
+              }}
+            >
+              <span>{isCoder ? '</> Coder Workspace' : '📢 Marketing Workspace'}</span>
+              <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>•</span>
+              <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>{user?.title || (isCoder ? 'Engineering & AI Infrastructure' : 'Growth & Market Strategy')}</span>
+            </div>
           </div>
 
           <div className="claude-composer-shell">
@@ -329,6 +349,34 @@ export default function ChatView({
         <>
           <div className="chat-scroll-area" id="chatScrollArea" ref={chatScrollRef}>
             <div className="messages-container" id="messagesContainer">
+              {/* Role Header Banner in Conversation */}
+              <div
+                className="chat-conversation-role-banner"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '0.5rem 0.85rem',
+                  marginBottom: '1.25rem',
+                  borderRadius: 'var(--radius-sm)',
+                  background: isCoder ? 'rgba(62, 230, 170, 0.06)' : 'rgba(94, 106, 210, 0.06)',
+                  border: isCoder ? '1px solid rgba(62, 230, 170, 0.22)' : '1px solid rgba(94, 106, 210, 0.22)',
+                  fontSize: '11px',
+                  color: 'var(--text-secondary)'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                  <span style={{ fontSize: '13px' }}>{isCoder ? '</>' : '📢'}</span>
+                  <span style={{ fontWeight: 800, color: isCoder ? 'var(--mint-primary)' : 'var(--accent-linear)' }}>
+                    {isCoder ? 'Coder Copilot Mode' : 'Marketing Copilot Mode'}
+                  </span>
+                  <span>• {user?.name} ({user?.title})</span>
+                </div>
+                <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+                  {isCoder ? 'PR Ingestion & Code Benchmarks' : 'GEO Citations & Strategy'}
+                </span>
+              </div>
+
               {messages.map((msg, index) => {
                 if (msg.role === "user") {
                   return (

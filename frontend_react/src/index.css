@@ -111,3 +111,77 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+/* ==========================================================================
+   GLOBAL FLOATING THEME TOGGLE
+   Universal control across all pages and views
+   ========================================================================== */
+
+.global-theme-toggle {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 9999;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: rgba(15, 17, 23, 0.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45), 0 0 16px rgba(245, 158, 11, 0.12);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 0;
+  margin: 0;
+  outline: none;
+  user-select: none;
+}
+
+.global-theme-toggle:hover {
+  transform: translateY(-2px) scale(1.08);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55), 0 0 22px rgba(245, 158, 11, 0.25);
+}
+
+.global-theme-toggle:active {
+  transform: scale(0.94);
+}
+
+.global-theme-toggle .theme-toggle-icon {
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.global-theme-toggle:hover .sun-icon {
+  transform: rotate(45deg);
+}
+
+.global-theme-toggle:hover .moon-icon {
+  transform: rotate(-20deg) scale(1.08);
+}
+
+/* Light Mode Overrides */
+:root[data-theme="light"] .global-theme-toggle,
+.theme-light .global-theme-toggle {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1), 0 0 16px rgba(99, 102, 241, 0.15);
+}
+
+:root[data-theme="light"] .global-theme-toggle:hover,
+.theme-light .global-theme-toggle:hover {
+  border-color: rgba(99, 102, 241, 0.4);
+  box-shadow: 0 12px 36px rgba(99, 102, 241, 0.18), 0 0 24px rgba(99, 102, 241, 0.25);
+}
+
+@media (max-width: 640px) {
+  .global-theme-toggle {
+    bottom: 1.15rem;
+    right: 1.15rem;
+    width: 40px;
+    height: 40px;
+  }
+}

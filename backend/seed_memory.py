@@ -15,6 +15,8 @@ if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8")
 
 os.environ["SSL_CERT_FILE"] = certifi.where()
+backend_dir = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(os.path.join(backend_dir, ".env"))
 load_dotenv()
 
 HINDSIGHT_BASE_URL = os.getenv("HINDSIGHT_BASE_URL", "https://api.hindsight.vectorize.io")

@@ -18,7 +18,8 @@ except Exception:
     pass
 
 os.environ["SSL_CERT_FILE"] = certifi.where()
-os.environ["REQUESTS_CA_BUNDLE"] = certifi.where()
+backend_dir = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(os.path.join(backend_dir, ".env"))
 load_dotenv()
 
 HINDSIGHT_BASE_URL = os.getenv("HINDSIGHT_BASE_URL", "https://api.hindsight.vectorize.io")

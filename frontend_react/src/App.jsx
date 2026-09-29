@@ -3,6 +3,7 @@ import LandingPage from './pages/LandingPage';
 import CopilotPage from './pages/CopilotPage';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
+import GlobalThemeToggle from './components/copilot/ThemeToggle';
 
 function MainApp() {
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
@@ -43,6 +44,7 @@ export default function App() {
     <ThemeProvider>
       <AuthProvider>
         <MainApp />
+        <GlobalThemeToggle />
       </AuthProvider>
     </ThemeProvider>
   );

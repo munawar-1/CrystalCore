@@ -10,19 +10,34 @@ from app.services.groq_service import groq_service
 
 router = APIRouter()
 
+@router.post("/retain")
 @router.post("/memory/retain")
 async def retain_memory(req: RetainRequest) -> Dict[str, Any]:
     """RETAIN: Ingests a new page update, competitor move, or engineering PR into Hindsight."""
+    target_page = req.source_url or req.page or "https://www.atlassian.com/software/jira/vs-linear"
+    comp_line = f"Competitor: {req.competitor}\n" if req.competitor else ""
     content = (
         f"[Dynamic Event - {req.date}]\n"
         f"Type: {req.event_type}\n"
         f"Title: {req.title}\n"
-        f"Page: {req.page}\n"
+        f"Page: {target_page}\n"
+        f"{comp_line}"
         f"Details: {req.details}"
     )
+    meta = {
+        "title": req.title,
+        "event_type": req.event_type,
+        "date": req.date,
+        "page": target_page,
+    }
+    if req.competitor:
+        meta["competitor"] = req.competitor
+    if req.source_url:
+        meta["source_url"] = req.source_url
+
     result = await hindsight_service.retain_async(
         content=content,
-        metadata={"title": req.title, "event_type": req.event_type, "date": req.date, "page": req.page}
+        metadata=meta
     )
     return result
 

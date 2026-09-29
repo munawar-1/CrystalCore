@@ -71,6 +71,11 @@ export function AuthProvider({ children }) {
     return currentUser;
   };
 
+  const toggleRole = () => {
+    const nextRole = currentRole === 'coder' ? 'marketing' : 'coder';
+    return switchRole(nextRole);
+  };
+
   const login = (role) => {
     switchRole(role);
     setIsAuthModalOpen(false);
@@ -88,6 +93,7 @@ export function AuthProvider({ children }) {
     isCoder: currentRole === 'coder',
     isMarketing: currentRole === 'marketing',
     switchRole,
+    toggleRole,
     login,
     logout,
     isAuthModalOpen,

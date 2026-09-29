@@ -1,13 +1,13 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
-import ThemeToggle from './ThemeToggle';
 
 export default function TopNavbar({
   onNavigateLanding,
   onOpenConfig,
   onToggleSidebar,
   onShare,
-  onOpenAuth
+  onOpenAuth,
+  onToggleRole
 }) {
   const { user, isCoder } = useAuth();
 
@@ -45,22 +45,21 @@ export default function TopNavbar({
       </div>
 
       <div className="navbar-right">
-        {/* LIGHT / DARK THEME TOGGLE */}
-        <ThemeToggle />
-
-        {/* ROLE AUTHENTICATION BADGE & SWITCHER */}
-        <button
-          className="nav-pill-btn role-auth-pill"
-          id="btnSwitchRole"
-          title="Click to Switch Role (Coder vs Marketing Team)"
-          onClick={onOpenAuth}
+        {/* ROLE AUTHENTICATION BADGE & 1-CLICK TOGGLE */}
+        <div
+          className="role-auth-pill-group"
           style={{
-            background: isCoder ? 'rgba(62, 230, 170, 0.12)' : 'rgba(94, 106, 210, 0.12)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            background: isCoder ? 'rgba(62, 230, 170, 0.08)' : 'rgba(94, 106, 210, 0.08)',
             border: isCoder ? '1px solid rgba(62, 230, 170, 0.35)' : '1px solid rgba(94, 106, 210, 0.35)',
-            cursor: 'pointer',
-            gap: '0.45rem'
+            borderRadius: '999px',
+            padding: '2px 4px 2px 10px',
+            gap: '0.45rem',
+            transition: 'all 0.25s ease'
           }}
         >
+          {/* Active Role Label */}
           <span
             style={{
               fontSize: '11px',
@@ -71,19 +70,51 @@ export default function TopNavbar({
           >
             {isCoder ? '</> Coder' : '📢 Marketing'}
           </span>
-          <span
+
+          {/* 1-Click Instant Role Toggle Button */}
+          <button
+            type="button"
+            className="btn-switch-role-instant"
+            id="btnSwitchRole"
+            title={`Click to immediately switch workspace to ${isCoder ? 'Marketing Team' : 'Coder'}`}
+            onClick={onToggleRole}
             style={{
               fontSize: '10px',
               background: isCoder ? 'var(--mint-primary)' : 'var(--accent-linear)',
               color: isCoder ? '#060709' : '#ffffff',
-              padding: '1px 6px',
+              padding: '3px 8px',
               borderRadius: '999px',
-              fontWeight: 800
+              fontWeight: 800,
+              border: 'none',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              transition: 'all 0.2s ease'
             }}
           >
-            Switch
-          </span>
-        </button>
+            <span>⇄ {isCoder ? 'Switch to Marketing' : 'Switch to Coder'}</span>
+          </button>
+
+          {/* Info Modal Button for Permissions */}
+          <button
+            type="button"
+            onClick={onOpenAuth}
+            title="View Role Capabilities & Permissions Modal"
+            style={{
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--text-muted)',
+              fontSize: '11px',
+              padding: '2px 4px',
+              display: 'flex',
+              alignItems: 'center'
+            }}
+          >
+            ℹ️
+          </button>
+        </div>
 
         {/* Chat History Toggle */}
         <button

@@ -64,7 +64,7 @@ const INITIAL_SESSIONS = {
 };
 
 export default function CopilotPage({ onNavigate, initialView }) {
-  const { user, isCoder, isMarketing, isAuthModalOpen, openAuthModal, closeAuthModal } = useAuth();
+  const { user, isCoder, isMarketing, isAuthModalOpen, openAuthModal, closeAuthModal, switchRole, toggleRole } = useAuth();
   const { isLight, isDark } = useTheme();
 
   // If initialView not specified in URL, set default based on role
@@ -85,6 +85,20 @@ export default function CopilotPage({ onNavigate, initialView }) {
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 3500);
+  };
+
+  // Instant 1-click role toggle handler
+  const handleToggleRole = () => {
+    const nextRole = isCoder ? 'marketing' : 'coder';
+    const updated = switchRole(nextRole);
+    if (nextRole === 'coder') {
+      setActiveView('coder_memory');
+      if (onNavigate) onNavigate('/app?view=coder_memory');
+    } else {
+      setActiveView('marketing_strategy');
+      if (onNavigate) onNavigate('/app?view=marketing_strategy');
+    }
+    showToast(`Switched workspace to: ${updated.roleName}`, 'success');
   };
 
   // Fetch timeline on mount
@@ -109,6 +123,15 @@ export default function CopilotPage({ onNavigate, initialView }) {
       setActiveView(initialView);
     }
   }, [initialView]);
+
+  // Synchronize active workspace view whenever user role changes
+  useEffect(() => {
+    if (isCoder && activeView === 'marketing_strategy') {
+      setActiveView('coder_memory');
+    } else if (isMarketing && activeView === 'coder_memory') {
+      setActiveView('marketing_strategy');
+    }
+  }, [isCoder, isMarketing]);
 
   const handleToggleCollapse = () => {
     setIsSidebarCollapsed((prev) => !prev);
@@ -266,11 +289,13 @@ export default function CopilotPage({ onNavigate, initialView }) {
   };
 
   const handleRoleChanged = (updatedUser) => {
-    showToast(`Switched active identity to: ${updatedUser.roleName}`, 'success');
+    showToast(`Switched workspace to: ${updatedUser.roleName}`, 'success');
     if (updatedUser.role === 'coder') {
       setActiveView('coder_memory');
+      if (onNavigate) onNavigate('/app?view=coder_memory');
     } else {
       setActiveView('marketing_strategy');
+      if (onNavigate) onNavigate('/app?view=marketing_strategy');
     }
   };
 
@@ -292,6 +317,7 @@ export default function CopilotPage({ onNavigate, initialView }) {
           onNavigateLanding={() => onNavigate ? onNavigate('/') : window.location.href = '/'}
           showToast={showToast}
           onOpenAuth={openAuthModal}
+          onToggleRole={handleToggleRole}
         />
 
         {/* Main Application Area */}
@@ -303,6 +329,7 @@ export default function CopilotPage({ onNavigate, initialView }) {
             onToggleSidebar={handleToggleCollapse}
             onShare={handleShare}
             onOpenAuth={openAuthModal}
+            onToggleRole={handleToggleRole}
           />
 
           {/* Dynamic Role & Application Views */}

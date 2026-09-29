@@ -17,13 +17,15 @@ try:
 except Exception:
     pass
 
-os.environ["SSL_CERT_FILE"] = certifi.where()
-os.environ["REQUESTS_CA_BUNDLE"] = certifi.where()
+backend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+load_dotenv(os.path.join(backend_dir, ".env"))
 load_dotenv()
 
-HINDSIGHT_BASE_URL = os.getenv("HINDSIGHT_BASE_URL", "https://api.hindsight.vectorize.io")
-HINDSIGHT_API_KEY = os.getenv("HINDSIGHT_API_KEY", "")
-HINDSIGHT_BANK_ID = os.getenv("HINDSIGHT_BANK_ID", "linear-seo-intelligence")
+from app.core.config import settings
+
+HINDSIGHT_BASE_URL = settings.HINDSIGHT_BASE_URL
+HINDSIGHT_API_KEY = settings.HINDSIGHT_API_KEY
+HINDSIGHT_BANK_ID = settings.HINDSIGHT_BANK_ID
 
 class HindsightService:
     def __init__(self):

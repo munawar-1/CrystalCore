@@ -12,7 +12,8 @@ export default function Sidebar({
   onNewChat,
   onNavigateLanding,
   showToast,
-  onOpenAuth
+  onOpenAuth,
+  onToggleRole
 }) {
   const { user, isCoder, isMarketing } = useAuth();
 
@@ -66,8 +67,6 @@ export default function Sidebar({
       {/* Role Indicator Banner */}
       <div
         className="sidebar-role-indicator"
-        onClick={onOpenAuth}
-        title="Click to switch role"
         style={{
           margin: '0.5rem 0.85rem 0.75rem',
           padding: '0.45rem 0.75rem',
@@ -76,17 +75,50 @@ export default function Sidebar({
           border: isCoder ? '1px solid rgba(62, 230, 170, 0.25)' : '1px solid rgba(94, 106, 210, 0.25)',
           display: 'flex',
           justifyContent: 'space-between',
-          alignItems: 'center',
-          cursor: 'pointer'
+          alignItems: 'center'
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+        <div
+          onClick={onToggleRole}
+          title={`Click to switch to ${isCoder ? 'Marketing Team' : 'Coder'}`}
+          style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', cursor: 'pointer', flex: 1 }}
+        >
           <span style={{ fontSize: '12px' }}>{isCoder ? '</>' : '📢'}</span>
           <span style={{ fontSize: '11px', fontWeight: 800, color: isCoder ? 'var(--mint-primary)' : 'var(--accent-linear)' }}>
             {user.roleName}
           </span>
         </div>
-        <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>change ▾</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+          <button
+            type="button"
+            onClick={onToggleRole}
+            title={`Switch to ${isCoder ? 'Marketing' : 'Coder'}`}
+            style={{
+              fontSize: '10px',
+              color: isCoder ? 'var(--mint-primary)' : 'var(--accent-linear)',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              fontWeight: 700
+            }}
+          >
+            ⇄ Switch
+          </button>
+          <button
+            type="button"
+            onClick={onOpenAuth}
+            title="View Role Capabilities & Permissions"
+            style={{
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '11px',
+              padding: '0 2px'
+            }}
+          >
+            ℹ️
+          </button>
+        </div>
       </div>
 
       {/* New Chat Action */}
